@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35825.156
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PocketCartPlus", "PocketCartPlus.csproj", "{6A645C08-4058-479C-8A08-158FD8A4D196}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6A645C08-4058-479C-8A08-158FD8A4D196}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A645C08-4058-479C-8A08-158FD8A4D196}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A645C08-4058-479C-8A08-158FD8A4D196}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A645C08-4058-479C-8A08-158FD8A4D196}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F8B7FB2E-74D1-4AEB-AAA5-B29A305AC0B2}
+	EndGlobalSection
+EndGlobal
