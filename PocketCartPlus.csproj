@@ -74,7 +74,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CartItem.cs" />
-    <Compile Include="CartListing.cs" />
     <Compile Include="GamePatch.cs" />
     <Compile Include="ModConfig.cs" />
     <Compile Include="Plugin.cs" />
