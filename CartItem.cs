@@ -6,7 +6,7 @@ namespace PocketCartPlus
     internal class CartItem
     {
         internal Vector3 PosOffset;
-        //internal Quaternion QuartOffset;
+        internal Quaternion QuartOffset;
         internal PhysGrabObject actualItem;
         internal bool isStored = false;
 
@@ -18,8 +18,18 @@ namespace PocketCartPlus
                 return;
             }
 
+            Plugin.Spam($"cart scale: {cart.inCart.localScale}");
+
             PosOffset = item.transform.position - cart.inCart.position;
-            //QuartOffset = Quaternion.Inverse(cart.inCart.rotation) * item.transform.rotation;
+            
+            //calculate scale
+            PosOffset = new Vector3(
+                PosOffset.x / cart.inCart.localScale.x,
+                PosOffset.y / cart.inCart.localScale.y,
+                PosOffset.z / cart.inCart.localScale.z
+                );
+            // Save the rotational offset
+            QuartOffset = Quaternion.Inverse(cart.transform.rotation) * item.transform.rotation;
             Plugin.Spam($"---------------\nCartItem created to store {item.gameObject.name}'s offsets:\nPosOffset - {PosOffset}\n---------------");
             actualItem = item;
 
@@ -34,8 +44,15 @@ namespace PocketCartPlus
                 return;
             }
 
-            PosOffset = cart.inCart.position - item.transform.position;
-            //QuartOffset = Quaternion.Inverse(cart.inCart.rotation) * item.transform.rotation;
+            PosOffset = item.transform.position - cart.inCart.position;
+
+            //calculate scale
+            PosOffset = new Vector3(
+                PosOffset.x / cart.inCart.localScale.x,
+                PosOffset.y / cart.inCart.localScale.y,
+                PosOffset.z / cart.inCart.localScale.z
+                );
+            QuartOffset = Quaternion.Inverse(cart.transform.rotation) * item.transform.rotation;
             actualItem = item;
             Plugin.Spam($"---------------\nCartItem updated to store {item.gameObject.name}'s offsets:\nPosOffset - {PosOffset}\n---------------");
         }

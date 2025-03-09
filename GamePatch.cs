@@ -11,6 +11,7 @@ namespace PocketCartPlus
     public class GetPocketCarts
     {
         public static List<PhysGrabCart> AllSmallCarts = [];
+        public static Dictionary<PhysGrabCart, Vector3> cartScale = [];
         public static void Postfix(PhysGrabCart __instance)
         {
             if (!__instance.isSmallCart)
@@ -18,6 +19,7 @@ namespace PocketCartPlus
 
             AllSmallCarts.RemoveAll(c => c == null);
             AllSmallCarts.Add(__instance);
+            cartScale.Add(__instance, __instance.transform.localScale);
 
         }
     }
@@ -49,6 +51,10 @@ namespace PocketCartPlus
 
         internal static void AddToEquip(PhysGrabObject item, PhysGrabCart cart)
         {
+            item.rb.isKinematic = true;
+            item.isActive = false;
+            item.impactDetector.enabled = false;
+            item.impactDetector.isIndestructible = true;
             CartItem cartItem;
             if (AllCartItems.Count == 0)
                 cartItem = new(item, cart);
@@ -61,9 +67,6 @@ namespace PocketCartPlus
                     cartItem.UpdateItem(item, cart);
             }
 
-            item.isActive = false;
-            item.rb.isKinematic = true;
-            item.impactDetector.isIndestructible = true;
             List<Collider> coll = [.. item.gameObject.GetComponentsInChildren<Collider>()];
             coll.Do(c => c.enabled = false);
             cart.StartCoroutine(ChangeSize(0.2f, item.transform.localScale * 0.01f, item.transform.localScale, item.transform));
@@ -92,7 +95,8 @@ namespace PocketCartPlus
     [HarmonyPatch(typeof(ItemEquippable), "UpdateVisuals")]
     public class UpdateVisualsPatch
     {
-        internal static WaitForSeconds invulnwait = new(0.2f);
+        //config?
+        internal static WaitForSeconds invulnwait = new(0.6f);
         public static void Postfix(ItemEquippable __instance)
         {
             if (__instance.currentState != ItemState.Unequipping)
@@ -127,34 +131,44 @@ namespace PocketCartPlus
             Plugin.Spam("small cart has spawned!");
             Plugin.Spam($"cart position: {cart.inCart.position}");
 
-            //wait for cart to stabilize
-            while (PlayerAvatar.instance.physGrabber.overrideGrab && cart.draggedTimer < 0.25f) 
-            {
-                yield return null;
-            }
-
             Plugin.Spam($"cart position: {cart.inCart.position}");
+
+            Vector3 cartOriginal = Vector3.one;
+            if (GetPocketCarts.cartScale.TryGetValue(cart, out cartOriginal))
+                Plugin.Spam($"cart original scale is {cartOriginal}");
+
+            EquipPatch.AllCartItems.RemoveAll(c => c.actualItem == null);
 
             Plugin.Spam("Restoring items in cart");
             EquipPatch.AllCartItems.DoIf(x => x.isStored, x =>
             {
-                x.actualItem.StartCoroutine(RestoreItem(x, cart));
+                x.actualItem.StartCoroutine(RestoreItem(x, cart, cartOriginal));
             });
         }
 
-        private static IEnumerator RestoreItem(CartItem cartItem, PhysGrabCart cart)
+        private static IEnumerator RestoreItem(CartItem cartItem, PhysGrabCart cart, Vector3 cartOriginal)
         {
             Plugin.Spam($"{cartItem.actualItem.gameObject.name} position: {cartItem.actualItem.gameObject.transform.position}");
+
             cartItem.isStored = false;
-            cartItem.actualItem.transform.position = ClampToCartBounds(cart, cartItem);
-            yield return null;
             cartItem.actualItem.isActive = true;
-            cartItem.actualItem.transform.localScale = Vector3.one;
+            cartItem.actualItem.transform.localScale = cart.transform.localScale;
+            cartItem.actualItem.transform.position = ClampToCartBounds(cart, cartItem);
+
+            //wait for cart to stabilize, config item for timer?
+            while (PlayerAvatar.instance.physGrabber.overrideGrab && cart.draggedTimer < 0.75f)
+            {
+                float t = cart.draggedTimer / 0.75f;
+                if(cartOriginal != cartItem.actualItem.transform.localScale)
+                    cartItem.actualItem.transform.localScale = Vector3.Lerp(cartItem.actualItem.transform.localScale, Vector3.one, t);
+                cartItem.actualItem.transform.position = ClampToCartBounds(cart, cartItem);
+                yield return null;
+            }
+
             List<Collider> coll = [.. cartItem.actualItem.gameObject.GetComponentsInChildren<Collider>()];
             coll.Do(c => c.enabled = true);
-
-            //wait 0.2 seconds then remove item invulnerability
-            //maybe add config item for this
+            cartItem.actualItem.transform.localScale = Vector3.one;
+            cartItem.actualItem.impactDetector.enabled = true;
             yield return invulnwait;
             cartItem.actualItem.rb.isKinematic = false;
             cartItem.actualItem.impactDetector.isIndestructible = false;
@@ -163,8 +177,15 @@ namespace PocketCartPlus
 
         private static Vector3 ClampToCartBounds(PhysGrabCart cart, CartItem item)
         {
-            Vector3 newPosition = cart.inCart.position + item.PosOffset;
+            Vector3 newPosition = cart.inCart.position + new Vector3(
+                item.PosOffset.x * cart.inCart.localScale.x,
+                item.PosOffset.y * cart.inCart.localScale.y,
+                item.PosOffset.z * cart.inCart.localScale.z
+            );
             Bounds combinedBounds = cart.capsuleColliders[0].bounds;
+
+            combinedBounds.min += new Vector3(0.2f, 0.2f, 0.2f);
+            combinedBounds.max -= new Vector3(0.2f, -1f, 0.2f);
 
             cart.capsuleColliders.Do(c => combinedBounds.Encapsulate(c.bounds));
 
