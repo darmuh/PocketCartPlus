@@ -1,4 +1,8 @@
-﻿using HarmonyLib;
+﻿using ExitGames.Client.Photon;
+using HarmonyLib;
+using Photon.Pun;
+using Photon.Realtime;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,11 +11,69 @@ using static ItemEquippable;
 
 namespace PocketCartPlus
 {
+    [HarmonyPatch(typeof(EventData))]
+    [HarmonyPatch(MethodType.Constructor)]
+    public class Networking
+    {
+        public static List<NetworkedEvent> AllCustomEvents = [];
+        public static List<EventData> AllEvents = [];
+        internal static NetworkedEvent HideCartItems;
+        internal static NetworkedEvent ShowCartItems;
+        internal static Dictionary<int, Action> NetworkEvents;
+        public static void Postfix(EventData __instance)
+        {
+            if(AllCustomEvents.Any(b => b.EventByte == __instance.Code))
+            {
+                Plugin.WARNING("New EventData appears to be using the same code as a custom event!");
+                //above may be shown even for our actual custom events
+            }
+            AllEvents.Add(__instance);
+        }
+
+        public static RaiseEventOptions RaiseAll = new()
+        {
+            Receivers = ReceiverGroup.All
+        };
+
+        public static RaiseEventOptions RaiseOthers = new()
+        {
+            Receivers = ReceiverGroup.Others
+        };
+
+        internal static void Init()
+        {
+            HideCartItems ??= new("HideCartItems", CartItem.HideCartItems);
+            ShowCartItems ??= new("ShowCartItems", CartItem.ShowCartItems);
+
+            PhotonNetwork.NetworkingClient.EventReceived += OnEvent;
+        }
+
+        private static void OnEvent(EventData photonEvent)
+        {
+            Plugin.Spam("Photon Event detected!");
+
+            NetworkedEvent thisEvent = AllCustomEvents.FirstOrDefault(e => e.EventByte == photonEvent.Code);
+            if (thisEvent == null)
+                return;
+
+            thisEvent.EventAction.Invoke(photonEvent.CustomData);
+        }
+    }
+
+    [HarmonyPatch(typeof(RunManager), "Awake")]
+    [HarmonyPriority(Priority.Last)]
+    public class InitThings
+    {
+        public static void Postfix()
+        {
+            Networking.Init();
+        }
+    }
+
     [HarmonyPatch(typeof(PhysGrabCart), "Start")]
     public class GetPocketCarts
     {
         public static List<PhysGrabCart> AllSmallCarts = [];
-        public static Dictionary<PhysGrabCart, Vector3> cartScale = [];
         public static void Postfix(PhysGrabCart __instance)
         {
             if (!__instance.isSmallCart)
@@ -19,8 +81,6 @@ namespace PocketCartPlus
 
             AllSmallCarts.RemoveAll(c => c == null);
             AllSmallCarts.Add(__instance);
-            cartScale.Add(__instance, __instance.transform.localScale);
-
         }
     }
 
@@ -41,20 +101,22 @@ namespace PocketCartPlus
                 return;
 
             Plugin.Spam("Pocket cart equip detected!\nHiding all cart items with cart!");
-            cart.itemsInCart.Do(c =>
-            {
-                AddToEquip(c, cart);
-            });
+            if (SemiFunc.IsMultiplayer())
+                PhotonNetwork.RaiseEvent(Networking.HideCartItems.EventByte, GetPocketCarts.AllSmallCarts.IndexOf(cart), Networking.RaiseOthers, SendOptions.SendReliable);
 
-            AllCartItems.RemoveAll(c => c.actualItem == null);
+            Networking.HideCartItems.EventAction.Invoke(GetPocketCarts.AllSmallCarts.IndexOf(cart));
         }
 
         internal static void AddToEquip(PhysGrabObject item, PhysGrabCart cart)
         {
+            //Disable item physics
             item.rb.isKinematic = true;
             item.isActive = false;
             item.impactDetector.enabled = false;
             item.impactDetector.isIndestructible = true;
+
+
+            //Create/Update CartItem
             CartItem cartItem;
             if (AllCartItems.Count == 0)
                 cartItem = new(item, cart);
@@ -67,10 +129,28 @@ namespace PocketCartPlus
                     cartItem.UpdateItem(item, cart);
             }
 
+            //Collider Disable
             List<Collider> coll = [.. item.gameObject.GetComponentsInChildren<Collider>()];
             coll.Do(c => c.enabled = false);
             cart.StartCoroutine(ChangeSize(0.2f, item.transform.localScale * 0.01f, item.transform.localScale, item.transform));
 
+            //Enemy Disable
+            if (cartItem.EnemyBody != null)
+            {
+                cartItem.EnemyBody.enabled = false;
+
+                if (cartItem.EnemyBody.enemy.HasNavMeshAgent)
+                    cartItem.EnemyBody.enemy.NavMeshAgent.enabled = false;
+
+                cartItem.EnemyBody.enemyParent.StartCoroutine(ChangeSize(0.2f, cartItem.EnemyBody.enemyParent.transform.localScale * 0.01f, cartItem.EnemyBody.enemyParent.transform.localScale, cartItem.EnemyBody.enemyParent.transform));
+            }
+
+            //Lights Disable
+            if (cartItem.itemLights.Count > 0)
+                cartItem.itemLights.Do(i => i.enabled = false);
+
+
+            //Set stored
             cartItem.isStored = true;
             Plugin.Spam($"{item.gameObject.name} has been equipped with the cart!");
         }
@@ -114,7 +194,10 @@ namespace PocketCartPlus
                 return;
 
             Plugin.Spam("Pocket cart with items detected!");
-            cart.StartCoroutine(WaitToDisplay(cart));        
+            if (SemiFunc.IsMultiplayer())
+                PhotonNetwork.RaiseEvent(Networking.ShowCartItems.EventByte, GetPocketCarts.AllSmallCarts.IndexOf(cart), Networking.RaiseOthers, SendOptions.SendReliable);
+
+            Networking.ShowCartItems.EventAction.Invoke(GetPocketCarts.AllSmallCarts.IndexOf(cart));
         }
 
         internal static IEnumerator WaitToDisplay(PhysGrabCart cart)
@@ -133,43 +216,88 @@ namespace PocketCartPlus
 
             Plugin.Spam($"cart position: {cart.inCart.position}");
 
-            Vector3 cartOriginal = Vector3.one;
-            if (GetPocketCarts.cartScale.TryGetValue(cart, out cartOriginal))
-                Plugin.Spam($"cart original scale is {cartOriginal}");
-
             EquipPatch.AllCartItems.RemoveAll(c => c.actualItem == null);
 
             Plugin.Spam("Restoring items in cart");
             EquipPatch.AllCartItems.DoIf(x => x.isStored, x =>
             {
-                x.actualItem.StartCoroutine(RestoreItem(x, cart, cartOriginal));
+                x.actualItem.StartCoroutine(RestoreItem(x, cart));
             });
         }
 
-        private static IEnumerator RestoreItem(CartItem cartItem, PhysGrabCart cart, Vector3 cartOriginal)
+        private static void LerpItem(CartItem cartItem, PhysGrabCart cart, float t)
+        {
+            if (cartItem.OriginalScale != cartItem.actualItem.transform.localScale)
+                cartItem.actualItem.transform.localScale = Vector3.Lerp(cartItem.actualItem.transform.localScale, cartItem.OriginalScale, t);
+
+            if (cartItem.EnemyBody != null)
+            {
+                if (cartItem.OriginalEnemyScale != cartItem.EnemyBody.enemyParent.transform.localScale)
+                    cartItem.EnemyBody.enemyParent.transform.localScale = Vector3.Lerp(cartItem.EnemyBody.enemyParent.transform.localScale, cartItem.OriginalEnemyScale, t);
+            }
+
+            cartItem.actualItem.transform.position = ClampToCartBounds(cart, cartItem);
+        }
+
+        private static IEnumerator RestoreItem(CartItem cartItem, PhysGrabCart cart)
         {
             Plugin.Spam($"{cartItem.actualItem.gameObject.name} position: {cartItem.actualItem.gameObject.transform.position}");
 
+            //Enable item physics
             cartItem.isStored = false;
             cartItem.actualItem.isActive = true;
             cartItem.actualItem.transform.localScale = cart.transform.localScale;
             cartItem.actualItem.transform.position = ClampToCartBounds(cart, cartItem);
 
-            //wait for cart to stabilize, config item for timer?
-            while (PlayerAvatar.instance.physGrabber.overrideGrab && cart.draggedTimer < 0.75f)
-            {
-                float t = cart.draggedTimer / 0.75f;
-                if(cartOriginal != cartItem.actualItem.transform.localScale)
-                    cartItem.actualItem.transform.localScale = Vector3.Lerp(cartItem.actualItem.transform.localScale, Vector3.one, t);
-                cartItem.actualItem.transform.position = ClampToCartBounds(cart, cartItem);
-                yield return null;
-            }
+            //enable item lights
+            if (cartItem.itemLights.Count > 0)
+                cartItem.itemLights.Do(i => i.enabled = true);
 
+            if (PlayerAvatar.instance.deadSet)
+            {
+                //player is dead, no need to worry about cart stabilizing
+                float deadTimer = 0.25f;
+                while (deadTimer > 0f)
+                {
+                    deadTimer -= Time.deltaTime;
+                    LerpItem(cartItem, cart, deadTimer);
+                    yield return null;
+                }
+            }
+            else
+            {
+                //wait for cart to stabilize, config item for timer?
+                while (PlayerAvatar.instance.physGrabber.overrideGrab && cart.draggedTimer < 0.25f)
+                {
+                    float t = cart.draggedTimer / 0.25f; //not sure why I am caluclating it like this
+                    LerpItem(cartItem, cart, t);
+                    yield return null;
+                }
+            }
+                
+            //Enable colliders
             List<Collider> coll = [.. cartItem.actualItem.gameObject.GetComponentsInChildren<Collider>()];
             coll.Do(c => c.enabled = true);
-            cartItem.actualItem.transform.localScale = Vector3.one;
+
+            //Enable Enemy stuff
+            if (cartItem.EnemyBody != null)
+            {
+                cartItem.EnemyBody.enabled = true;
+                if (cartItem.EnemyBody.enemy.HasNavMeshAgent)
+                {
+                    Plugin.Spam("Enabling navmesh");
+                    cartItem.EnemyBody.enemy.NavMeshAgent.enabled = true;
+                    cartItem.EnemyBody.enemy.NavMeshAgent.ResetPath();
+                }
+                yield return null;
+                Plugin.Spam("Returning enemy state");
+                cartItem.EnemyBody.enemy.CurrentState = cartItem.OriginalState;
+            }
+
+            //Set to original scale and enable destructability
+            cartItem.actualItem.transform.localScale = cartItem.OriginalScale;
             cartItem.actualItem.impactDetector.enabled = true;
-            yield return invulnwait;
+            yield return invulnwait; // configurable invulnerability
             cartItem.actualItem.rb.isKinematic = false;
             cartItem.actualItem.impactDetector.isIndestructible = false;
             

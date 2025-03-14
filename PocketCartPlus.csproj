@@ -57,8 +57,17 @@
     <Reference Include="BepInEx">
       <HintPath>..\..\..\AppData\Roaming\com.kesomannen.gale\repo\profiles\Default\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
+    <Reference Include="Photon3Unity3D">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\Photon3Unity3D.dll</HintPath>
+    </Reference>
+    <Reference Include="PhotonRealtime">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\PhotonRealtime.dll</HintPath>
+    </Reference>
     <Reference Include="PhotonUnityNetworking">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\PhotonUnityNetworking.dll</HintPath>
+    </Reference>
+    <Reference Include="PhotonUnityNetworking.Utilities">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\PhotonUnityNetworking.Utilities.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\UnityEngine.dll</HintPath>
@@ -76,6 +85,7 @@
     <Compile Include="CartItem.cs" />
     <Compile Include="GamePatch.cs" />
     <Compile Include="ModConfig.cs" />
+    <Compile Include="NetworkedEvents.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
