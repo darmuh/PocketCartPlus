@@ -1,9 +1,10 @@
 {
-  "name": "ModName",
-  "version_number": "0.2.0",
-  "website_url": "https://github.com/darmuh/ModName",
-  "description": "Mod description",
+  "name": "PocketCartPlus",
+  "description": "Improve the PocketCart with new upgrades! When upgraded, the cart can store items alongside it in your inventory",
+  "version_number": "0.1.0",
   "dependencies": [
+    "Zehs-REPOLib-1.4.1",
     "BepInEx-BepInExPack-5.4.2100"
-  ]
+  ],
+  "website_url": "https://github.com/darmuh/PocketCartPlus"
 }

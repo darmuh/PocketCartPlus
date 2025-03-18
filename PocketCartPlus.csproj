@@ -54,6 +54,9 @@
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
     <Reference Include="BepInEx">
       <HintPath>..\..\..\AppData\Roaming\com.kesomannen.gale\repo\profiles\Default\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
@@ -68,6 +71,12 @@
     </Reference>
     <Reference Include="PhotonUnityNetworking.Utilities">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\PhotonUnityNetworking.Utilities.dll</HintPath>
+    </Reference>
+    <Reference Include="REPOLib">
+      <HintPath>..\Refs\REPOLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\Unity.TextMeshPro.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\UnityEngine.dll</HintPath>
@@ -85,18 +94,19 @@
     <Compile Include="CartItem.cs" />
     <Compile Include="GamePatch.cs" />
     <Compile Include="ModConfig.cs" />
-    <Compile Include="NetworkedEvents.cs" />
+    <Compile Include="Networking.cs" />
     <Compile Include="Plugin.cs" />
+    <Compile Include="PocketCartUpgradeItems.cs" />
+    <Compile Include="PocketCartUpgradeSize.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Pocket Cart Upgrades.repobundle" />
+    <None Include="pocketcartplusicon.xcf" />
     <None Include="_RELEASE\CHANGELOG.md" />
     <None Include="_RELEASE\LICENSE.MD" />
     <None Include="_RELEASE\manifest.json" />
     <None Include="_RELEASE\README.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="_RELEASE\icon.png" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild">
@@ -104,6 +114,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="_RELEASE\icon.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

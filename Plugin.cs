@@ -2,10 +2,12 @@
 using BepInEx;
 using HarmonyLib;
 using System.Reflection;
+using UnityEngine;
 
 namespace PocketCartPlus
 {
     [BepInPlugin("com.github.darmuh.PocketCartPlus", "PocketCart Plus", (PluginInfo.PLUGIN_VERSION))]
+    [BepInDependency("REPOLib", "1.4.2")]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin instance = null!;
@@ -26,7 +28,13 @@ namespace PocketCartPlus
             ModConfig.Init();
             //Config.ConfigReloaded += OnConfigReloaded;
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
+            Networking.Init();
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} load complete!");
+        }
+
+        internal static void Message(string message)
+        {
+            Log.LogMessage(message);
         }
 
         internal static void Spam(string message)
