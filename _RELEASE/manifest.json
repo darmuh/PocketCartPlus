@@ -1,9 +1,9 @@
 {
   "name": "PocketCartPlus",
   "description": "Improve the PocketCart with new upgrades! When upgraded, the cart can store items alongside it in your inventory",
-  "version_number": "0.1.0",
+  "version_number": "0.1.2",
   "dependencies": [
-    "Zehs-REPOLib-1.4.1",
+    "Zehs-REPOLib-1.4.2",
     "BepInEx-BepInExPack-5.4.2100"
   ],
   "website_url": "https://github.com/darmuh/PocketCartPlus"

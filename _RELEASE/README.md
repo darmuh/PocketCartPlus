@@ -26,7 +26,7 @@ Keep Items Upgrade: ``Shared Unlock``
     - This will make the unlock shared. So if one player unlocks it all will have the upgrade.  
 Keep Items Upgrade: ``Ignore Enemies``  
     - When enabled, this will make it so enemies cannot be stored with the cart.  
-Keep Items Upgrade: ``Player Safety Check"``  
+Keep Items Upgrade: ``Player Safety Check``  
     - When disabled, a tumbled player can fall to their death when stored with the cart.  
 Keep Items Upgrade: ``Cart Stabilization Timer``  
     - This timer is the amount of time items wait for the cart to stabilize before returning to their original scale.  

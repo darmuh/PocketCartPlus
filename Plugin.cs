@@ -3,6 +3,7 @@ using BepInEx;
 using HarmonyLib;
 using System.Reflection;
 using UnityEngine;
+using System.IO;
 
 namespace PocketCartPlus
 {
@@ -15,7 +16,7 @@ namespace PocketCartPlus
         {
             public const string PLUGIN_GUID = "com.github.darmuh.PocketCartPlus";
             public const string PLUGIN_NAME = "PocketCart Plus";
-            public const string PLUGIN_VERSION = "0.1.0";
+            public const string PLUGIN_VERSION = "0.1.2";
         }
 
         internal static ManualLogSource Log = null!;
@@ -26,8 +27,13 @@ namespace PocketCartPlus
             Log = base.Logger;
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} is loading with version {PluginInfo.PLUGIN_VERSION}!");
             ModConfig.Init();
+            string pluginFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string assetBundleFilePath = Path.Combine(pluginFolderPath, "pocketcartplus");
+            REPOLib.BundleLoader.LoadBundle(assetBundleFilePath, Assembly.GetExecutingAssembly().Location);
+            
             //Config.ConfigReloaded += OnConfigReloaded;
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
+            
             Networking.Init();
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} load complete!");
         }
