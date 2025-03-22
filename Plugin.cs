@@ -16,10 +16,11 @@ namespace PocketCartPlus
         {
             public const string PLUGIN_GUID = "com.github.darmuh.PocketCartPlus";
             public const string PLUGIN_NAME = "PocketCart Plus";
-            public const string PLUGIN_VERSION = "0.1.2";
+            public const string PLUGIN_VERSION = "0.1.3";
         }
 
         internal static ManualLogSource Log = null!;
+        internal static System.Random Rand = new();
 
         private void Awake()
         {

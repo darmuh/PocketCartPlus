@@ -15,6 +15,7 @@ namespace PocketCartPlus
         internal static ConfigEntry<bool> PlayerSafetyCheck = null!;
         internal static ConfigEntry<float> CartStabilizationTimer = null!;
         internal static ConfigEntry<float> ItemSafetyTimer = null!;
+        internal static ConfigEntry<int> CartItemRarity = null!;
         
         internal static void Init()
         {
@@ -23,6 +24,7 @@ namespace PocketCartPlus
             KeepItemsUnlockNoUpgrade = Plugin.instance.Config.Bind("Keep Items Upgrade", "Unlock without Upgrade", false, "Enable this if you want the upgrade enabled without having to buy it from the shop.");
             CartItemsMinPrice = Plugin.instance.Config.Bind("Keep Items Upgrade", "Minimum Price", 6000f, new ConfigDescription("Set this as the minimum base price for this item (before multipliers)", new AcceptableValueRange<float>(100f, 90000f)));
             CartItemsMaxPrice = Plugin.instance.Config.Bind("Keep Items Upgrade", "Maximum Price", 11000f, new ConfigDescription("Set this as the maximum base price for this item (before multipliers)", new AcceptableValueRange<float>(100f, 90000f)));
+            CartItemRarity = Plugin.instance.Config.Bind("Keep Items Upgrade", "Rarity Percentage (Add-on)", 75, new ConfigDescription("This is a percentage from 0-100 of how rarely this item will be added to the store.\nThis is an added-on rarity on-top of base-game's rng based spawn system.", new AcceptableValueRange<int>(0, 100)));
             CartItemsUpgradeShared = Plugin.instance.Config.Bind("Keep Items Upgrade", "Shared Unlock", false, "Enable this if you want one purchase of this upgrade to unlock the feature for all players in the lobby");
             IgnoreEnemies = Plugin.instance.Config.Bind("Keep Items Upgrade", "Ignore Enemies", false, "Enable this if you do not want the pocket cart to store enemies when this upgrade is enabled.");
             PlayerSafetyCheck = Plugin.instance.Config.Bind("Keep Items Upgrade", "Player Safety Check", true, "When enabled, ensures living players are ignored during pocket cart equip to prevent player death.");

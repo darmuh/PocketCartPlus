@@ -49,18 +49,36 @@ namespace PocketCartPlus
         }
     }
 
-    [HarmonyPatch(typeof(ItemAttributes), "GetValue")]
-    public class ModifyShopItem
+    //price and rarity config patch
+    [HarmonyPatch(typeof(SemiFunc), "ShopPopulateItemVolumes")]
+    public class ModifyItemRarity
     {
-        internal static readonly float baseMultiplier = 4f;
-        public static void Prefix(ItemAttributes __instance)
+        public static void Prefix()
         {
-            if(__instance.itemAssetName == "Item PocketCart Items")
+            if (!SemiFunc.IsMasterClientOrSingleplayer())
+                return;
+
+            PocketCartUpgradeItems.ValueRef();
+
+            bool shouldAdd = false;
+
+            Item keepItems = ShopManager.instance.potentialItemUpgrades.FirstOrDefault(i => i.itemAssetName == "Item PocketCart Items");
+
+            if (keepItems == null)
             {
-                __instance.itemValueMin = ModConfig.CartItemsMinPrice.Value / baseMultiplier;
-                __instance.itemValueMax = ModConfig.CartItemsMaxPrice.Value / baseMultiplier;
-                Plugin.Spam($"Custom value range of {ModConfig.CartItemsMinPrice.Value} - {ModConfig.CartItemsMaxPrice.Value} set for {__instance.itemName}");
-            } 
+                Plugin.Spam($"Item not found in potentialItemUpgrades ({ShopManager.instance.potentialItemUpgrades.Count})!");
+                return;
+            }
+
+            if (ModConfig.CartItemRarity.Value >= Plugin.Rand.Next(0, 100))
+                shouldAdd = true;
+
+            if (!shouldAdd)
+                ShopManager.instance.potentialItemUpgrades.Remove(keepItems);
+            
+            Plugin.Spam($"Rarity determined item is a valid potential itemUpgrade in the shop {shouldAdd}");
+            keepItems.value = PocketCartUpgradeItems.valuePreset;
+            Plugin.Spam($"Value preset set for KeepPocketCartItems Upgrade!");
         }
     }
 

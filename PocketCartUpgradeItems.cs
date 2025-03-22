@@ -14,6 +14,9 @@ namespace PocketCartPlus
         internal static bool localItemsUpgrade = false;
         internal static Dictionary<string, int> dictionaryOfClients = [];
         internal static List<string> ClientsUnlocked = [];
+        internal static Value valuePreset = null!;
+        internal static readonly float basePriceMultiplier = 4f;
+        internal static int UpgradeLevel = 0;
 
         private void Start()
         {
@@ -29,6 +32,8 @@ namespace PocketCartPlus
 
         internal static void ClientStart()
         {
+            Plugin.Spam("ClientStart");
+
             if (localItemsUpgrade)
                 return;
 
@@ -38,6 +43,7 @@ namespace PocketCartPlus
 
         internal static void HostStart()
         {
+            Plugin.Spam("HostStart");
             if(ModConfig.KeepItemsUnlockNoUpgrade.Value)
             {
                 Plugin.Spam("Host says this upgrade should be unlocked by everyone, regardless of the shop!");
@@ -99,9 +105,14 @@ namespace PocketCartPlus
 
         private static void UpdateDictionaryRefs()
         {
+            //Remove potential nulls
+            ClientsUnlocked.RemoveAll(c => c == null);
+
             ClientsUnlocked.Do(c =>
             {
-                if (!dictionaryOfClients.ContainsKey(c))
+                if(dictionaryOfClients.Count == 0)
+                    dictionaryOfClients.Add(c, 1);
+                else if (!dictionaryOfClients.ContainsKey(c))
                     dictionaryOfClients.Add(c, 1);
                 else
                     dictionaryOfClients[c] = 1;
@@ -141,9 +152,6 @@ namespace PocketCartPlus
 
         internal static void FromHost()
         {
-            if (localItemsUpgrade == true)
-                return;
-
             Plugin.Spam($"Client received message from Host to unlock {Networking.CartItemsUpgrade}");
             localItemsUpgrade = true;
         }
@@ -169,13 +177,24 @@ namespace PocketCartPlus
             }
 
             //Save stuff
-            Player client = PhotonNetwork.PlayerList.FirstOrDefault(p => p.ActorNumber == eventData.Sender);
-            string steamID = client.UserId;
+            string steamID;
+            if (eventData.Sender == PhotonNetwork.LocalPlayer.ActorNumber)
+                steamID = PlayerAvatar.instance.steamID;
+            else
+            {
+                Player client = PhotonNetwork.PlayerList.FirstOrDefault(p => p.ActorNumber == eventData.Sender);
+                steamID = client.UserId;
+            }
+                
+            if(steamID == null)
+                Plugin.WARNING($"NRE steamID from [ {eventData.Sender} ]");
+            else
+            {
+                if (!ClientsUnlocked.Contains(steamID))
+                    ClientsUnlocked.Add(steamID);
 
-            if (!ClientsUnlocked.Contains(steamID))
-                ClientsUnlocked.Add(steamID);
-
-            UpdateSave();
+                UpdateSave();
+            }
 
             if (ModConfig.CartItemsUpgradeShared.Value)
             {
@@ -190,6 +209,18 @@ namespace PocketCartPlus
                 FromHost();
             else
                 SendTargetStatus(eventData, steamID);
+        }
+
+        internal static void ValueRef()
+        {
+            if (valuePreset == null)
+                valuePreset = ScriptableObject.CreateInstance<Value>();
+
+            valuePreset.valueMin = ModConfig.CartItemsMinPrice.Value / basePriceMultiplier;
+            valuePreset.valueMax = ModConfig.CartItemsMaxPrice.Value / basePriceMultiplier;
+            valuePreset.name = "pocketcart_keepitems";
+
+            Plugin.Spam($"valuePreset created for keepItems upgrade with base min price of {ModConfig.CartItemsMinPrice.Value} and base max price of {ModConfig.CartItemsMaxPrice.Value}");
         }
     }
 }

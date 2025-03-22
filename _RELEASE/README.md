@@ -2,7 +2,7 @@
 
 ### Improve the Pocket Cart with new upgrades! When upgraded, the cart has new functionality like keeping items in the cart when it's stored in your inventory  
 
-This mod is intended for use by all clients in a lobby. As of version 0.1.0, this mod provides one upgrade that can be purchased in the shop that will enhance the pocket cart.  
+This mod is intended for use by all clients in a lobby. Currently, this mod provides **one** upgrade that can be purchased in the shop that will enhance the pocket cart.  
 
 ### Upgrades List
 **Pocket C.A.R.T. Upgrade - Keep Items**  
@@ -21,7 +21,10 @@ Keep Items Upgrade: ``Unlock without Upgrade``
 Keep Items Upgrade: ``Minimum Price``  
     - This will set the minimum base-price of the Keep Items Upgrade  
 Keep Items Upgrade: ``Maximum Price``  
-    - This will set the maximum base-price of the Keep Items Upgrade  
+    - This will set the maximum base-price of the Keep Items Upgrade 
+Keep Items Upgrade: ``Rarity Percentage (Add-on)``
+    - This is an added-on rarity percentage that is calculated before the shop initializes.
+    - Set to 100% if you do not wish for added rarity.
 Keep Items Upgrade: ``Shared Unlock``  
     - This will make the unlock shared. So if one player unlocks it all will have the upgrade.  
 Keep Items Upgrade: ``Ignore Enemies``  
@@ -36,5 +39,5 @@ Keep Items Upgrade: ``Item Safety Timer``
 ### This mod is still WIP, if you run into issues please report them to the linked github.  
 
 ### Last update to this page:  
-March 18th, 2025 (version 0.1.0)  
+March 22nd, 2025 (version 0.1.3)  
 *Changelog may have more up-to-date information than this page at times.*
