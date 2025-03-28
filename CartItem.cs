@@ -1,5 +1,5 @@
-﻿using ExitGames.Client.Photon;
-using HarmonyLib;
+﻿using HarmonyLib;
+using REPOLib.Modules;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,17 +10,19 @@ namespace PocketCartPlus
     internal class CartItem : MonoBehaviour
     {
         internal Vector3 PosOffset;
-        //internal Quaternion QuartOffset;
-        internal PhysGrabObject actualItem;
+        internal PhysGrabObject grabObj;
         internal bool isStored = false;
+        internal Transform baseTransform;
         internal Vector3 OriginalScale;
-        internal Vector3 OriginalEnemyScale;
+        //internal Vector3 OriginalEnemyScale;
 
         internal EnemyRigidbody EnemyBody = null!;
         internal EnemyState OriginalState = EnemyState.None;
         internal List<Light> itemLights = [];
 
-        internal PhysGrabCart MyCart;
+        internal PhysGrabCart MyCart = null!;
+        internal SpriteRenderer mapIcon = null!;
+        internal bool hasMapIcon = false;
 
         internal void UpdateItem(PhysGrabObject item, PhysGrabCart cart)
         {
@@ -30,18 +32,19 @@ namespace PocketCartPlus
                 return;
             }
 
-            PosOffset = item.transform.position - cart.inCart.position;
-            OriginalScale = item.transform.localScale;
+            baseTransform = GetTransform(item);
+            PosOffset = baseTransform.position - cart.inCart.position;
+            OriginalScale = baseTransform.localScale;
 
             MyCart = cart;
-            actualItem = item;
+            grabObj = item;
+            hasMapIcon = mapIcon != null;
 
             itemLights = [.. gameObject.GetComponentsInChildren<Light>()];
 
             if (item.isEnemy)
             {
                 EnemyBody = gameObject.GetComponent<EnemyRigidbody>();
-                OriginalEnemyScale = EnemyBody.enemyParent.transform.localScale;
                 OriginalState = EnemyBody.enemy.CurrentState;
 
                 List<Light> enemyLights = [.. EnemyBody.enemyParent.gameObject.GetComponentsInChildren<Light>()];
@@ -66,30 +69,18 @@ namespace PocketCartPlus
                 EquipPatch.AllCartItems.Add(this);
         }
 
-        internal static void HideCartItems(EventData eventData)
+        private Transform GetTransform(PhysGrabObject item)
         {
-            Plugin.Spam("HideCartItems detected!");
-            int cartIndex = (int)eventData.CustomData;
+            if (item.isEnemy)
+                return item.gameObject.gameObject.GetComponent<EnemyRigidbody>().enemyParent.gameObject.transform;
 
-            GetPocketCarts.AllSmallCarts.RemoveAll(c => c == null);
-            PhysGrabCart cart = GetPocketCarts.AllSmallCarts.Find(c => c.photonView.InstantiationId == cartIndex);
+            if (item.isPlayer)
+                return item.gameObject.GetComponent<PlayerAvatar>().gameObject.transform;
 
-            if (cart == null)
-            {
-                Plugin.WARNING($"cartIndex is invalid! [ {cartIndex} ]");
-                return;
-            }
-                
-            cart.itemsInCart.Do(c =>
-            {
-                Plugin.Spam($"AddToEquip [ {c.gameObject.name} ]");
-                AddToEquip(c, cart);
-            });
-
-            EquipPatch.AllCartItems.RemoveAll(c => c.actualItem == null);
+            return item.gameObject.transform;
         }
 
-        private static void AddToEquip(PhysGrabObject item, PhysGrabCart cart)
+        internal static void AddToEquip(PhysGrabObject item, PhysGrabCart cart)
         {
             if (item.isPlayer && ModConfig.PlayerSafetyCheck.Value)
             {
@@ -113,23 +104,22 @@ namespace PocketCartPlus
             CartItem cartItem = item.gameObject.GetComponent<CartItem>() ?? item.gameObject.AddComponent<CartItem>();
             cartItem.UpdateItem(item, cart);
 
-            Plugin.Spam($"cartItem.actualItem is null [ {cartItem.actualItem == null} ]");
-
             //Collider Disable
             List<Collider> coll = [.. item.gameObject.GetComponentsInChildren<Collider>()];
             coll.Do(c => c.enabled = false);
-            cart.StartCoroutine(EquipPatch.ChangeSize(0.2f, item.transform.localScale * 0.01f, item.transform.localScale, item.transform));
+            
 
             //Enemy Disable
             if (cartItem.EnemyBody != null)
             {
                 cartItem.EnemyBody.enabled = false;
+                if (cartItem.EnemyBody.enemy.HasNavMeshAgent && SemiFunc.IsMasterClientOrSingleplayer())
+                    cartItem.EnemyBody.enemy.NavMeshAgent.Disable(9999999f);
 
-                if (cartItem.EnemyBody.enemy.HasNavMeshAgent)
-                    cartItem.EnemyBody.enemy.NavMeshAgent.enabled = false;
-
-                cartItem.EnemyBody.enemyParent.StartCoroutine(EquipPatch.ChangeSize(0.2f, cartItem.EnemyBody.enemyParent.transform.localScale * 0.01f, cartItem.EnemyBody.enemyParent.transform.localScale, cartItem.EnemyBody.enemyParent.transform));
+                //cartItem.EnemyBody.enemyParent.StartCoroutine(EquipPatch.ChangeSize(0.2f, cartItem.EnemyBody.enemyParent.transform.localScale * 0.01f, cartItem.EnemyBody.enemyParent.transform.localScale, cartItem.EnemyBody.enemyParent.transform));
             }
+
+            cart.StartCoroutine(EquipPatch.ChangeSize(0.2f, cartItem.baseTransform.localScale * 0.01f, cartItem.baseTransform.localScale, cartItem.baseTransform));
 
             //Lights Disable
             if (cartItem.itemLights.Count > 0)
@@ -137,26 +127,17 @@ namespace PocketCartPlus
 
             //Set stored
             cartItem.isStored = true;
-            Plugin.Spam($"{item.gameObject.name} has been equipped with the cart!");
-            Plugin.Spam($"cartItem.actualItem is null [ {cartItem.actualItem == null} ]");
-        }
 
-        internal static void ShowCartItems(EventData eventData)
-        {
-            Plugin.Message("NETWORK EVENT: ShowCartItems detected!");
-            int cartIndex = (int)eventData.CustomData;
-
-            GetPocketCarts.AllSmallCarts.RemoveAll(c => c == null);
-            PhysGrabCart cart = GetPocketCarts.AllSmallCarts.Find(c => c.photonView.InstantiationId == cartIndex);
-
-            if (cart == null)
+            if (cartItem.hasMapIcon)
             {
-                Plugin.WARNING($"cartIndex is invalid! [ {cartIndex} ]");
-                return;
+                if (cartItem.mapIcon != null)
+                    cartItem.mapIcon.enabled = false;
+                else
+                    Plugin.WARNING($"Unable to hide map icon for {item.gameObject.name}");
             }
-
-            Plugin.Spam("Starting cart coroutine!");
-            cart.StartCoroutine(UpdateVisualsPatch.WaitToDisplay(cart));
+            
+            Plugin.Spam($"{item.gameObject.name} has been equipped with the cart!");
+            Plugin.Spam($"cartItem.grabObj is null [ {cartItem.grabObj == null} ]");
         }
 
         internal Vector3 ClampToCartBounds(PhysGrabCart cart)
@@ -173,7 +154,7 @@ namespace PocketCartPlus
 
             cart.capsuleColliders.Do(c => combinedBounds.Encapsulate(c.bounds));
 
-            return actualItem.transform.position = new Vector3(
+            return baseTransform.position = new Vector3(
                 Mathf.Clamp(newPosition.x, combinedBounds.min.x, combinedBounds.max.x),
                 Mathf.Clamp(newPosition.y, combinedBounds.min.y, combinedBounds.max.y),
                 Mathf.Clamp(newPosition.z, combinedBounds.min.z, combinedBounds.max.z)
@@ -182,80 +163,79 @@ namespace PocketCartPlus
 
         private void LerpItem(PhysGrabCart cart, float t)
         {
-            if (OriginalScale != actualItem.transform.localScale)
-                transform.localScale = Vector3.Lerp(actualItem.transform.localScale, OriginalScale, t);
+            if (OriginalScale != baseTransform.localScale)
+                baseTransform.localScale = Vector3.Lerp(baseTransform.localScale, OriginalScale, t);
 
-            if (EnemyBody != null)
-            {
-                if (OriginalEnemyScale != EnemyBody.enemyParent.transform.localScale)
-                    EnemyBody.enemyParent.transform.localScale = Vector3.Lerp(EnemyBody.enemyParent.transform.localScale, OriginalEnemyScale, t);
-            }
+            //if (EnemyBody != null)
+            //{
+            //    if (OriginalEnemyScale != EnemyBody.enemyParent.transform.localScale)
+            //        EnemyBody.enemyParent.transform.localScale = Vector3.Lerp(EnemyBody.enemyParent.transform.localScale, OriginalEnemyScale, t);
+            //}
 
-            actualItem.transform.position = ClampToCartBounds(cart);
+            baseTransform.position = ClampToCartBounds(cart);
         }
 
         internal IEnumerator RestoreItem(PhysGrabCart cart)
         {
-            Plugin.Spam($"{gameObject.name} position: {gameObject.transform.position}");
-            Plugin.Spam($"actualItem is null [ {actualItem == null} ]");
+            Plugin.Spam($"{gameObject.name} position: {baseTransform.position}");
 
             //Enable item physics
+            grabObj.isActive = true;
             isStored = false;
-            actualItem.isActive = true;
-            actualItem.transform.localScale = transform.localScale;
-            transform.position = ClampToCartBounds(cart);
+            baseTransform.localScale = transform.localScale;
+            baseTransform.position = ClampToCartBounds(cart);
 
             //enable item lights
             if (itemLights.Count > 0)
                 itemLights.Do(i => i.enabled = true);
 
-            if (PlayerAvatar.instance.deadSet)
+            //wait for cart to stabilize
+            float timer = 0f;
+            while (timer < ModConfig.CartStabilizationTimer.Value)
             {
-                //player is dead, no need to worry about cart stabilizing
-                float deadTimer = 0.1f;
-                while (deadTimer > 0f)
-                {
-                    deadTimer -= Time.deltaTime;
-                    LerpItem(cart, deadTimer);
-                    yield return null;
-                }
-            }
-            else
-            {
-                //wait for cart to stabilize
-                while (PlayerAvatar.instance.physGrabber.overrideGrab && cart.draggedTimer < ModConfig.CartStabilizationTimer.Value)
-                {
-                    float t = cart.draggedTimer;
-                    LerpItem(cart, t);
-                    yield return null;
-                }
+                timer += Time.deltaTime;
+                LerpItem(cart, timer);
+                yield return null;
             }
 
             //Enable colliders
-            List<Collider> coll = [.. actualItem.gameObject.GetComponentsInChildren<Collider>()];
+            List<Collider> coll = [.. grabObj.gameObject.GetComponentsInChildren<Collider>()];
             coll.Do(c => c.enabled = true);
+
+            //Set to original scale
+            baseTransform.localScale = OriginalScale;
 
             //Enable Enemy stuff
             if (EnemyBody != null)
             {
                 EnemyBody.enabled = true;
-                if (EnemyBody.enemy.HasNavMeshAgent)
+                if (EnemyBody.enemy.HasNavMeshAgent && SemiFunc.IsMasterClientOrSingleplayer())
                 {
                     Plugin.Spam("Enabling navmesh");
-                    EnemyBody.enemy.NavMeshAgent.enabled = true;
-                    EnemyBody.enemy.NavMeshAgent.ResetPath();
+                    EnemyBody.enemy.NavMeshAgent.Enable();
+                    EnemyBody.enemy.EnemyTeleported(baseTransform.position);
                 }
                 yield return null;
                 Plugin.Spam("Returning enemy state");
                 EnemyBody.enemy.CurrentState = OriginalState;
             }
 
-            //Set to original scale and enable destructability
-            actualItem.transform.localScale = OriginalScale;
-            actualItem.impactDetector.enabled = true;
-            actualItem.rb.isKinematic = false;
+            //enable destructability
+            grabObj.impactDetector.enabled = true;
+            grabObj.rb.isKinematic = false;
+
+            //enable map icon
+            if (hasMapIcon)
+            {
+                if (mapIcon != null)
+                    mapIcon.enabled = true;
+                else
+                    Plugin.WARNING($"Unable to show map icon for {gameObject.name}");
+            }
+           
+            //last safety check
             yield return new WaitForSeconds(ModConfig.ItemSafetyTimer.Value);
-            actualItem.impactDetector.isIndestructible = false;
+            grabObj.impactDetector.isIndestructible = false;
             Plugin.Spam("RestoreItem complete!");
         }
 

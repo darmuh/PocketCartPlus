@@ -8,7 +8,7 @@ using System.IO;
 namespace PocketCartPlus
 {
     [BepInPlugin("com.github.darmuh.PocketCartPlus", "PocketCart Plus", (PluginInfo.PLUGIN_VERSION))]
-    [BepInDependency("REPOLib", "1.4.2")]
+    [BepInDependency("REPOLib", "1.5.0")]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin instance = null!;
@@ -16,7 +16,7 @@ namespace PocketCartPlus
         {
             public const string PLUGIN_GUID = "com.github.darmuh.PocketCartPlus";
             public const string PLUGIN_NAME = "PocketCart Plus";
-            public const string PLUGIN_VERSION = "0.1.3";
+            public const string PLUGIN_VERSION = "0.2.0";
         }
 
         internal static ManualLogSource Log = null!;
@@ -34,8 +34,7 @@ namespace PocketCartPlus
             
             //Config.ConfigReloaded += OnConfigReloaded;
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
-            
-            Networking.Init();
+
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} load complete!");
         }
 
