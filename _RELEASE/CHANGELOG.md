@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.2.1] *hotfixes*
+ - Hopefully fixed issue of ``Upgrade Levels`` detecting the incorrect amount of carts stored and subsequently making it so the upgrade doesn't work
+	- This mostly happened in multiplayer lobbies so it's hard to reproduce on my own. Please let me know if you still experience this issue.
+ - Fixed ``Unlock without Upgrade`` eating items when the upgrade hasnt been purchased (sorry)
+ - Fixed readme formatting issues introduced in last update
+
 ## [0.2.0] *Slight Rework*
  - Updated asset bundle.
 	- Keep Items upgrade now will glow blue and the upgrade effect will be a blue cloud

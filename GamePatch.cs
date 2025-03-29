@@ -138,6 +138,9 @@ namespace PocketCartPlus
             if (cart == null)
                 return;
 
+            if (cart.itemsInCart.Count == 0)
+                return;
+
             CartManager cartManager = cart.GetComponent<CartManager>();
 
             if(cartManager == null)
@@ -158,17 +161,15 @@ namespace PocketCartPlus
                 //compare local upgrade level to amount of carts storing items
                 if (UpgradeManager.CartItemsUpgradeLevel <= CartManager.CartsStoringItems)
                 {
-                    Plugin.Spam($"Unable to store items with this cart, already storing items in [ {CartManager.CartsStoringItems} ] carts!");
+                    Plugin.Message($"Unable to store items with this cart, already storing items in [ {CartManager.CartsStoringItems} ] carts!");
                     return;
-                }
-                else
-                    CartManager.CartsStoringItems++;
+                }      
             }
             
             if (SemiFunc.IsMultiplayer())
-                cartManager.photonView.RPC("HideCartItems", Photon.Pun.RpcTarget.All);
+                cartManager.photonView.RPC("HideCartItems", Photon.Pun.RpcTarget.All, PlayerAvatar.instance.steamID);
             else
-                cartManager.HideCartItems();
+                cartManager.HideCartItems(PlayerAvatar.instance.steamID);
 
             Plugin.Spam("Pocket cart equip detected!\nHiding all cart items with cart!");
         }
@@ -198,7 +199,7 @@ namespace PocketCartPlus
             if (__instance.currentState != ItemState.Unequipping)
                 return;
 
-            if (!UpgradeManager.LocalItemsUpgrade)
+            if (!UpgradeManager.LocalItemsUpgrade && !ModConfig.KeepItemsUnlockNoUpgrade.Value)
                 return;
 
             Plugin.Spam("Unequip detected! Checking if this item is a cart we care about");
@@ -272,7 +273,8 @@ namespace PocketCartPlus
             yield return null;
             cartManager.isShowingItems = false;
             cartManager.hasItems = false;
-            CartManager.CartsStoringItems--;
+            if(cartManager.storedBy == PlayerAvatar.instance.steamID)
+                CartManager.CartsStoringItems = Mathf.Clamp(CartManager.CartsStoringItems - 1, 0, 99);
         }
     }
 }

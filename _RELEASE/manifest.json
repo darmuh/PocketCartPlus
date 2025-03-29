@@ -1,7 +1,7 @@
 {
   "name": "PocketCartPlus",
   "description": "Improve the Pocket Cart with a new upgrade that can store items! Buy a larger pocket cart variant!  ",
-  "version_number": "0.2.0",
+  "version_number": "0.2.1",
   "dependencies": [
     "Zehs-REPOLib-1.5.0",
     "BepInEx-BepInExPack-5.4.2100"

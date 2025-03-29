@@ -38,16 +38,16 @@ Keep Items Upgrade: ``Cart Stabilization Timer``
     - This timer is the amount of time items wait for the cart to stabilize before returning to their original scale.  
 Keep Items Upgrade: ``Item Safety Timer``  
     - This timer is the amount of time items are invulnerable to damage after being equipped from inventory (into the cart, hopefully)  
-Keep Items Upgrade: ``Show On MiniMap``
-    - This will determine whether or not to show the upgrade's icon on the minimap.
-Keep Items Upgrade: ``Upgrade Levels``
-    - When enabled, will limit the amount of pocket carts you can store items with to the number of times the upgrade has been purchased.
-Cart Plus Item: ``Minimum Price`` 
-    - This will set the minimum base-price of the POCKET C.A.R.T. Plus item.
+Keep Items Upgrade: ``Show On MiniMap``  
+    - This will determine whether or not to show the upgrade's icon on the minimap.  
+Keep Items Upgrade: ``Upgrade Levels``  
+    - When enabled, will limit the amount of pocket carts you can store items with to the number of times the upgrade has been purchased.  
+Cart Plus Item: ``Minimum Price``  
+    - This will set the minimum base-price of the POCKET C.A.R.T. Plus item.  
 Cart Plus Item: ``Maximum Price`` 
-    - This will set the maximum base-price of the POCKET C.A.R.T. Plus item.
-Cart Plus Item:  ``Rarity Percentage (Add-on)``
-    - This is an added-on rarity percentage that is calculated before the shop initializes.
+    - This will set the maximum base-price of the POCKET C.A.R.T. Plus item.  
+Cart Plus Item:  ``Rarity Percentage (Add-on)``  
+    - This is an added-on rarity percentage that is calculated before the shop initializes.  
         
 ### This mod is still WIP, if you run into issues please report them to the linked github.  
 

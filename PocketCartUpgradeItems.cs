@@ -74,6 +74,7 @@ namespace PocketCartPlus
         internal static void ResetProgress()
         {
             SaveLoaded = false;
+            CartManager.CartsStoringItems = 0;
             CartItemsUpgradeLevel = 0;
             LocalItemsUpgrade = false;
             dictionaryOfClients = [];

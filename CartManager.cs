@@ -13,6 +13,7 @@ namespace PocketCartPlus
         internal bool isShowingItems = false;
         internal static int CartsStoringItems = 0;
         internal PhysGrabCart MyCart = null!;
+        internal string storedBy = string.Empty;
 
         private void Start()
         {
@@ -27,11 +28,12 @@ namespace PocketCartPlus
         }
 
         [PunRPC]
-        internal void HideCartItems()
+        internal void HideCartItems(string steamID)
         {
             if (isStoringItems)
                 return;
 
+            storedBy = steamID;
             isStoringItems = true;
             Plugin.Spam("HideCartItems detected!");
 
@@ -44,6 +46,8 @@ namespace PocketCartPlus
             EquipPatch.AllCartItems.RemoveAll(c => c.grabObj == null);
             isStoringItems = false;
             hasItems = true;
+            if (storedBy == PlayerAvatar.instance.steamID)
+                CartsStoringItems++;
         }
 
         [PunRPC]
