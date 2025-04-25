@@ -9,6 +9,8 @@ This mod is intended for use by **all clients** in a lobby. This mod provides **
 **UPGRADE: Pocket C.A.R.T. Upgrade - Keep Items**  
 	- When the pocket cart is stored, will store any items in the cart alongside it.  
 	- Configurable to be a shared upgrade or by individual.  
+    - Items (and players if allowed) in the cart will be transported to the Pocket Dimension when a cart is pocketed.
+    - Enemies, if allowed via config, can also be pocketed when inside the pocket cart.
 **ITEM: Pocket C.A.R.T. PLUS**  
 	- This is a separate pocket cart item that has been recolored and will provide a slight size increase.
     - The base size increase is 125% of a standard pocket cart, with potential rare size increases of 150-175%.
@@ -42,6 +44,8 @@ Keep Items Upgrade: ``Show On MiniMap``
     - This will determine whether or not to show the upgrade's icon on the minimap.  
 Keep Items Upgrade: ``Upgrade Levels``  
     - When enabled, will limit the amount of pocket carts you can store items with to the number of times the upgrade has been purchased.  
+Keep Items Upgrade: ``Allow Deposit``
+    - When enabled, holding ALT while pocketing a cart will allow you to deposit items rather than storing them.
 Cart Plus Item: ``Minimum Price``  
     - This will set the minimum base-price of the POCKET C.A.R.T. Plus item.  
 Cart Plus Item: ``Maximum Price`` 
@@ -52,5 +56,5 @@ Cart Plus Item:  ``Rarity Percentage (Add-on)``
 ### This mod is still WIP, if you run into issues please report them to the linked github.  
 
 ### Last update to this page:  
-March 28th, 2025 (version 0.2.0)  
+April 24th, 2025 (version 0.3.0)  
 *Changelog may have more up-to-date information than this page at times.*

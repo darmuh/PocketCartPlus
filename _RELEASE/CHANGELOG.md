@@ -4,6 +4,38 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.3.0] *void update + bug fixes*
+ - Added new pocket dimension void to transport items to.
+	- This should fix the somewhat inconsistent issue of map icons still not being removed from the radar.
+	- With ``Player Safety Check`` disabled, players will be transported to the void.
+	- With ``Ignore Enemies`` disabled, enemies will be frozen and NOT transported to the void.
+	- Pocket dimension is physically located at (999, 0, 0), this can be updated if any level (custom or vanilla) ends up occupying these coordinates
+ - Added new config item ``Allow Deposit``
+	- When enabled, allows you to hold alt when pocketing a pocket cart to *not* pocket items with the cart.
+	- Essentially functions as a deposit items key-bind.
+	- This control is not re-mappable currently, that may change in later updates.
+	- I may also add a UI element hinting at the control in a future update
+	- Added for feature request mentioned in [github issue#9](https://github.com/darmuh/PocketCartPlus/issues/9)
+ - Removed map icon patching as it was inconsistent and there's no reason to hide them when the items are located in the void. [github issue#5](https://github.com/darmuh/PocketCartPlus/issues/5)
+ - Likely fixed some of the common errors you'd see in console when pocketing an enemy [(github issue#7)](https://github.com/darmuh/PocketCartPlus/issues/7)
+ - Fixed player spawn patch to work for clients by changing patch to CameraAimSpawn, the original patch only worked for host client.
+ - Added patch for LeaveToMainMenu to reset upgrade progress. This should be loaded when you spawn in on a new save
+ - Fixed players losing their clipping and endlessly dying when ``Player Safety Check`` is disabled
+	- during initial testing there was one tester who asked for this interaction to stay, however, i've decided to remove this since it essentially breaks a player until they leave and join back
+ - Most likely fixed save loading issue where even if the upgrade was shown as enabled it wouldn't enable the required behaviors.
+	- Thanks to the multiple github reports on this issue I was able to determine what part of the game patching was failing.
+	- While i'm not certain, i'm hopeful this will also fix a similar issue that late-join users were experiencing.
+	- Adjusted patching to reset progress when leaving to main menu.
+	- Moved methods relating to this unlock out of the PocketCartUpgradeItems class as this class depends on the box being spawned (which on a save reload it will not be spawned)
+ - Fixed rarity config item not working
+	- Ended up reworking how these values are utilized in-game even though the keep items upgrade rarities were working before.
+	- Also now if an item is removed from the list due to the add-on rarity another random item of the same type will spawn in it's place
+
+## [0.2.2] *repolib update*
+ - Updated for repolib version 2.0.0
+ - Added a reset to the cartsstoringitems counter when a player spawns.
+	- Hopefully fixes an uncommon issue of the upgradelevels configitem making the upgrade unusable sometimes
+
 ## [0.2.1] *hotfixes*
  - Hopefully fixed issue of ``Upgrade Levels`` detecting the incorrect amount of carts stored and subsequently making it so the upgrade doesn't work
 	- This mostly happened in multiplayer lobbies so it's hard to reproduce on my own. Please let me know if you still experience this issue.

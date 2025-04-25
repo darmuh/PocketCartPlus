@@ -84,6 +84,9 @@
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\PhotonUnityNetworking.Utilities.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\Unity.InputSystem.dll</HintPath>
+    </Reference>
     <Reference Include="Unity.TextMeshPro">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\REPO\REPO_Data\Managed\Unity.TextMeshPro.dll</HintPath>
       <Private>False</Private>
@@ -115,6 +118,7 @@
     <Compile Include="PocketCartUpgradeSize.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UpgradeManager.cs" />
+    <Compile Include="VoidRef.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Pocket Cart Upgrades.repobundle" />
@@ -138,7 +142,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Zehs-REPOLib">
-      <Version>1.5.0</Version>
+      <Version>2.0.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

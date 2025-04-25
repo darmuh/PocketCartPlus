@@ -98,21 +98,35 @@ namespace PocketCartPlus
         {
             bool shouldAdd = false;
 
-            Item cartPlus = ShopManager.instance.potentialItems.FirstOrDefault(i => i.itemAssetName == "Item Cart Small Plus");
+            Item cartPlus = REPOLib.Modules.Items.GetItemByName("Item Cart Small Plus");
 
             if (cartPlus == null)
             {
-                Plugin.Spam($"Item not found in potentialItems ({ShopManager.instance.potentialItems.Count})!");
+                Plugin.Spam($"Item not found!");
                 return;
             }
 
             if (ModConfig.PlusItemRarity.Value >= Plugin.Rand.Next(0, 100))
                 shouldAdd = true;
 
-            if (!shouldAdd)
-                ShopManager.instance.potentialItems.Remove(cartPlus);
+            if (!shouldAdd && ShopManager.instance.potentialItems.Contains(cartPlus))
+            {
+                int CountToReplace = ShopManager.instance.potentialItems.Count(i => i.itemAssetName == cartPlus.itemAssetName);
+                Plugin.Spam($"Add-on rarity has determined {cartPlus.itemName} should be removed from the store! Original contains {CountToReplace} of this item");
+                ShopManager.instance.potentialItems.RemoveAll(i => i.itemAssetName == cartPlus.itemAssetName);
+                
+                if(CountToReplace > 0 && ShopManager.instance.potentialItems.Count > 0)
+                {
+                    for(int i = 0; i < CountToReplace; i++)
+                    {
+                        ShopManager.instance.potentialItems.Add(ShopManager.instance.potentialItems[Plugin.Rand.Next(0, ShopManager.instance.potentialItems.Count)]);
+                        Plugin.Spam("Replaced item with another random valid item");
+                    }
+                }  
+            }
+                
 
-            Plugin.Spam($"Rarity determined item is a valid potential itemUpgrade in the shop {shouldAdd}");
+            Plugin.Spam($"Rarity determined item is valid to be added to the shop {shouldAdd}");
             cartPlus.value = valuePreset;
             Plugin.Spam($"Value preset set for cart small plus!");
         }

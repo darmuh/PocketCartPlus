@@ -18,6 +18,7 @@ namespace PocketCartPlus
         internal static ConfigEntry<int> CartItemRarity = null!;
         internal static ConfigEntry<bool> CartItemSprite = null!;
         internal static ConfigEntry<bool> CartItemLevels = null!;
+        internal static ConfigEntry<bool> AllowDeposit = null!;
 
         //Plus Item
         internal static ConfigEntry<int> PlusItemRarity = null!;
@@ -39,6 +40,7 @@ namespace PocketCartPlus
             CartItemLevels = Plugin.instance.Config.Bind("Keep Items Upgrade", "Upgrade Levels", true, "When enabled, the upgrade will only apply for as many carts as the current upgrade level.\nSo upgrade level 1 will only store items for one pocket cart at a time");
             CartStabilizationTimer = Plugin.instance.Config.Bind("Keep Items Upgrade", "Cart Stabilization Timer", 0.15f, new ConfigDescription("Set this as the amount of time the cart items remain frozen while waiting for the cart to stabilize after equipping.", new AcceptableValueRange<float>(0.05f, 1f)));
             ItemSafetyTimer = Plugin.instance.Config.Bind("Keep Items Upgrade", "Item Safety Timer", 0.2f, new ConfigDescription("Set this as the amount of time the cart items are invulnerable to damage after the cart is re-equipped.", new AcceptableValueRange<float>(0.05f, 1f)));
+            AllowDeposit = Plugin.instance.Config.Bind("Keep Items Upgrade", "Allow Deposit", true, "Enable this to stop items from being stored when holding ALT");
 
 
             PlusItemRarity = Plugin.instance.Config.Bind("Cart Plus Item", "Rarity Percentage (Add-on)", 95, new ConfigDescription("This is a percentage from 0-100 of how rarely this item will be added to the store.\nThis is an added-on rarity on-top of base-game's rng based spawn system.\n Set to 0 to never spawn this item.", new AcceptableValueRange<int>(0, 100)));

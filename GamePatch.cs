@@ -3,33 +3,74 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using static ItemEquippable;
 
 namespace PocketCartPlus
 {
 
-    [HarmonyPatch(typeof(Map), "CustomPositionSet")]
-    public class MapFixPatch
+    [HarmonyPatch(typeof(SemiFunc), "OnLevelGenDone")]
+
+    public class PocketDimension
     {
-        public static void Postfix(Transform transformTarget, Transform transformSource)
+        internal static GameObject ThePocket;
+        internal static VoidRef voidRef;
+        public static void Postfix()
         {
-            if (SemiFunc.RunIsShop())
+            if (!SpawnPlayerStuff.AreWeInGame())
                 return;
 
-            //target is the mapicon, source is the actual object
-            CartItem cartItem = transformSource.gameObject.GetComponent<CartItem>() ?? transformSource.gameObject.AddComponent<CartItem>();
-            
-            if (cartItem.mapIcon != null)
-                return;
-
-            Plugin.Spam($"Assigning mapIcon for game object {transformSource.gameObject.name}");
-            cartItem.mapIcon = transformTarget.gameObject.GetComponentInChildren<SpriteRenderer>();
+            ThePocket = GameObject.Instantiate(Plugin.PocketDimension, new Vector3(999f, 0, 0), new Quaternion(), LevelGenerator.Instance.LevelParent.transform);
+            voidRef = ThePocket.GetComponentInChildren<VoidRef>();
+            Plugin.Spam($"voidRef is null - {voidRef == null}");
+            //TeleportMe();
 
         }
 
-        private static bool AreWeInGame()
+        internal static void TeleportPlayer(PlayerAvatar player, Vector3 position, Quaternion rotation)
         {
-            if (SemiFunc.RunIsLobbyMenu())
+            if (player.isLocal)
+            {
+                if(player.isTumbling)
+                    player.tumble.TumbleSet(false, false);
+
+                PlayerController.instance.transform.position = position;
+                PlayerController.instance.transform.rotation = rotation;
+            }
+
+            player.rb.position = position;
+            player.rb.rotation = rotation;
+            player.transform.position = position;
+            player.transform.rotation = rotation;
+            player.clientPosition = position;
+            player.clientPositionCurrent = position;
+            player.clientRotation = rotation;
+            player.clientRotationCurrent = rotation;
+            player.playerAvatarVisuals.visualPosition = position;
+
+            Plugin.Spam($"{player.playerName} teleported to position {position}");
+        }
+    }
+
+    [HarmonyPatch(typeof(CameraAim), "CameraAimSpawn")]
+    public class SpawnPlayerStuff
+    {
+        public static void Postfix()
+        {
+            if (!AreWeInGame())
+                return;
+
+            //Reset CartsStoringItems amount (since they have just spawned and cant possibly be storing items)
+            Plugin.Message("Player Spawned: CartsStoringItems set to 0");
+            CartManager.CartsStoringItems = 0;
+
+            if(PocketCartUpgradeItems.LoadNewSave)
+                PocketCartUpgradeItems.ClientsUnlocked();
+        }
+
+        internal static bool AreWeInGame()
+        {
+            if (RunManager.instance.levelCurrent == RunManager.instance.levelLobbyMenu)
                 return false;
 
             if (RunManager.instance.levelCurrent == RunManager.instance.levelMainMenu)
@@ -37,14 +78,16 @@ namespace PocketCartPlus
 
             return true;
         }
+
+        
     }
 
-    [HarmonyPatch(typeof(StatsManager), "Awake")]
-    public class StatsManagerAwake
+    [HarmonyPatch(typeof(StatsManager), "LoadGame")]
+    public class StatsManagerLoad
     {
         public static void Postfix()
         {
-            PocketCartUpgradeItems.InitDictionary();
+            PocketCartUpgradeItems.LoadStart();
         }
     }
 
@@ -53,6 +96,7 @@ namespace PocketCartPlus
     {
         public static void Postfix(StatsManager __instance)
         {
+            PocketCartUpgradeItems.InitDictionary();
             Plugin.Spam("Updating statsmanager with our save keys!");
             if (!__instance.dictionaryOfDictionaries.ContainsKey("playerUpgradePocketcartKeepItems"))
                 __instance.dictionaryOfDictionaries.Add("playerUpgradePocketcartKeepItems", PocketCartUpgradeItems.dictionaryOfClients);
@@ -61,6 +105,16 @@ namespace PocketCartPlus
 
     [HarmonyPatch(typeof(RunManager), "ResetProgress")]
     public class ResetStuff
+    {
+        public static void Postfix()
+        {
+            PocketCartUpgradeItems.ResetProgress();
+        }
+    }
+
+    //LeaveToMainMenu
+    [HarmonyPatch(typeof(RunManager), "LeaveToMainMenu")]
+    public class LeaveToMainReset
     {
         public static void Postfix()
         {
@@ -164,6 +218,12 @@ namespace PocketCartPlus
                     Plugin.Message($"Unable to store items with this cart, already storing items in [ {CartManager.CartsStoringItems} ] carts!");
                     return;
                 }      
+            }
+
+            if(Keyboard.current.altKey.isPressed && ModConfig.AllowDeposit.Value)
+            {
+                Plugin.Message($"Deposit key being pressed, not storing items in cart!");
+                return;
             }
             
             if (SemiFunc.IsMultiplayer())

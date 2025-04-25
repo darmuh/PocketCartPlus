@@ -10,13 +10,16 @@ namespace PocketCartPlus
 {
     public class PocketCartUpgradeItems : MonoBehaviour
     {
+        internal static PocketCartUpgradeItems instance;
         internal PhotonView photonView = null!;
         internal ItemToggle itemToggle = null!;
         internal Item itemComponent = null!;
         internal MapCustom mapCustom = null!;
 
+        internal static bool LoadNewSave = true;
+
         //static
-        internal static bool SaveLoaded = false;
+        //internal static bool SaveLoaded = false;
         internal static Dictionary<string, int> dictionaryOfClients = [];
         internal static List<string> ClientsUnlockedOLD = [];
         internal static Value valuePreset = null!;
@@ -27,6 +30,7 @@ namespace PocketCartPlus
 
         private void Start()
         {
+            instance = this;
             photonView = gameObject.GetComponent<PhotonView>();
             itemComponent = gameObject.GetComponent<Item>();
             itemToggle = gameObject.GetComponent<ItemToggle>();
@@ -42,11 +46,55 @@ namespace PocketCartPlus
                 else
                     mapCustom.color = blueUpgradeicon;
             }
+        }
 
-            if (!SaveLoaded)
+        internal static void ClientsUnlocked()
+        {
+            LoadNewSave = false;
+            if (!SemiFunc.IsMasterClientOrSingleplayer())
+                return;
+
+            int clientsUnlocked = 0;
+            int sharedLevel = 0;
+
+            GameDirector.instance.PlayerList.Do(p =>
             {
-                LoadStart();
-                SaveLoaded = true;
+                if (!dictionaryOfClients.TryGetValue(p.steamID, out int value))
+                {
+                    Plugin.Spam($"{p.playerName} does not exist in listing");
+                    return;
+                }
+
+                if (value < 1)
+                {
+                    Plugin.Spam($"{p.playerName} does not have this unlock!");
+                    return;
+                }
+
+                //update number of clients who have unlocked this upgrade
+                clientsUnlocked++;
+
+                //update upgrade level to highest of clients who have it unlocked
+                if (sharedLevel < value)
+                    sharedLevel = value;
+
+                //no need to target individual player
+                if (ModConfig.CartItemsUpgradeShared.Value)
+                    return;
+
+                Plugin.Spam($"Host has detected {p.playerName} as having CartItemsUpgrade unlocked. Telling client to enable behavior with level {value}");
+
+                CartManager.firstInstance.photonView.RPC("ReceiveItemsUpgrade", p.photonView.Owner, value);
+                //Networking.UnlockUpgrade.RaiseEvent(Networking.CartItemsUpgrade + $":{value}", custom, SendOptions.SendReliable);
+            });
+
+            if (!ModConfig.CartItemsUpgradeShared.Value)
+                return;
+
+            if (clientsUnlocked > 0)
+            {
+                Plugin.Spam($"Host has shared upgrades enabled and detected [ {clientsUnlocked} ] with the upgrade unlocked. Highest upgrade level set to [ {sharedLevel} ]");
+                CartManager.firstInstance.photonView.RPC("ReceiveItemsUpgrade", RpcTarget.Others, sharedLevel);
             }
         }
 
@@ -73,14 +121,14 @@ namespace PocketCartPlus
 
         internal static void ResetProgress()
         {
-            SaveLoaded = false;
+            Plugin.Message($"UpgradeItems progress reset, will be refreshed by next save");
             CartManager.CartsStoringItems = 0;
             CartItemsUpgradeLevel = 0;
             LocalItemsUpgrade = false;
             dictionaryOfClients = [];
         }
 
-        internal void LoadStart()
+        internal static void LoadStart()
         {
             //convert old save data
             LoadSave();
@@ -88,54 +136,10 @@ namespace PocketCartPlus
             dictionaryOfClients.Do(d => Plugin.Spam($"{d.Key}"));
             Plugin.Spam("--- End of ClientsUnlocked List ---");
 
-            if (!SemiFunc.IsMasterClientOrSingleplayer())
-                return;
-
-            int clientsUnlocked = 0;
-            int sharedLevel = 0;
-
-            GameDirector.instance.PlayerList.Do(p =>
-            {
-                if(!dictionaryOfClients.TryGetValue(p.steamID, out int value))
-                {
-                    Plugin.Spam($"{p.playerName} does not exist in listing");
-                    return;
-                }
-
-                if(value < 1)
-                {
-                    Plugin.Spam($"{p.playerName} does not have this unlock!");
-                    return;
-                }
-
-                //update number of clients who have unlocked this upgrade
-                clientsUnlocked++;
-
-                //update upgrade level to highest of clients who have it unlocked
-                if (sharedLevel < value)
-                    sharedLevel = value;
-
-                //no need to target individual player
-                if (ModConfig.CartItemsUpgradeShared.Value)
-                    return;
-
-                Plugin.Spam($"Host has detected {p.playerName} as having CartItemsUpgrade unlocked. Telling client to enable behavior with level {value}");
-
-                photonView.RPC("ReceiveUpgrade", p.photonView.Owner, value);
-                //Networking.UnlockUpgrade.RaiseEvent(Networking.CartItemsUpgrade + $":{value}", custom, SendOptions.SendReliable);
-            });
-
-            if (!ModConfig.CartItemsUpgradeShared.Value)
-                return;
-
-            if(clientsUnlocked > 0)
-            {
-                Plugin.Spam($"Host has shared upgrades enabled and detected [ {clientsUnlocked} ] with the upgrade unlocked. Highest upgrade level set to [ {sharedLevel} ]");
-                photonView.RPC("ReceiveUpgrade", RpcTarget.Others, sharedLevel);
-            } 
+            LoadNewSave = true;
         }
 
-        internal void LoadSave()
+        internal static void LoadSave()
         {
             Plugin.Spam("Loading unlocked clients listing from statsmanager!");
             if (!StatsManager.instance.dictionaryOfDictionaries.TryGetValue("playerUpgradePocketcartKeepItems", out dictionaryOfClients))
@@ -154,7 +158,7 @@ namespace PocketCartPlus
             StatsManager.instance.dictionaryOfDictionaries["playerUpgradePocketcartKeepItems"] = dictionaryOfClients;
         }
 
-        private void GetOldSaveData()
+        private static void GetOldSaveData()
         {
             if (ES3.KeyExists("PocketCartUpgrades_ItemsUpgrade", StatsManager.instance.saveFileCurrent))
             {
@@ -231,7 +235,7 @@ namespace PocketCartPlus
             if (!LocalItemsUpgrade)
                 LocalItemsUpgrade = true;
 
-            if (upgradeLevel > CartItemsUpgradeLevel)
+            if (upgradeLevel != CartItemsUpgradeLevel)
                 CartItemsUpgradeLevel = upgradeLevel;
         }
 
@@ -251,19 +255,33 @@ namespace PocketCartPlus
         {
             bool shouldAdd = false;
 
-            Item keepItems = ShopManager.instance.potentialItemUpgrades.FirstOrDefault(i => i.itemAssetName == "Item PocketCart Items");
+            Item keepItems = REPOLib.Modules.Items.GetItemByName("Item PocketCart Items");
 
             if (keepItems == null)
             {
-                Plugin.Spam($"Item not found in potentialItemUpgrades ({ShopManager.instance.potentialItemUpgrades.Count})!");
+                Plugin.Spam($"Item not found!");
                 return;
             }
 
             if (ModConfig.CartItemRarity.Value >= Plugin.Rand.Next(0, 100))
                 shouldAdd = true;
 
-            if (!shouldAdd)
-                ShopManager.instance.potentialItemUpgrades.Remove(keepItems);
+            if (!shouldAdd && ShopManager.instance.potentialItemUpgrades.Contains(keepItems))
+            {
+                int CountToReplace = ShopManager.instance.potentialItems.Count(i => i.itemAssetName == keepItems.itemAssetName);
+                Plugin.Spam($"Add-on rarity has determined {keepItems.itemName} should be removed from the store! Original contains {CountToReplace} of this item");
+                ShopManager.instance.potentialItemUpgrades.RemoveAll(i => i.itemAssetName == keepItems.itemAssetName);
+
+                if (CountToReplace > 0 && ShopManager.instance.potentialItemUpgrades.Count > 0)
+                {
+                    for (int i = 0; i < CountToReplace; i++)
+                    {
+                        ShopManager.instance.potentialItemUpgrades.Add(ShopManager.instance.potentialItemUpgrades[Plugin.Rand.Next(0, ShopManager.instance.potentialItemUpgrades.Count)]);
+                        Plugin.Spam("Replaced upgrade with another random valid upgrade");
+                    }
+                }
+            }
+                
 
             Plugin.Spam($"Rarity determined item is a valid potential itemUpgrade in the shop {shouldAdd}");
             keepItems.value = valuePreset;

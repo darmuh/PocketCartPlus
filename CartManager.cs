@@ -14,12 +14,15 @@ namespace PocketCartPlus
         internal static int CartsStoringItems = 0;
         internal PhysGrabCart MyCart = null!;
         internal string storedBy = string.Empty;
+        internal static CartManager firstInstance;
 
         private void Start()
         {
             Plugin.Spam("CartManager instance created!");
             photonView = gameObject.GetComponent<PhotonView>();
             MyCart = gameObject.GetComponent<PhysGrabCart>();
+            if (firstInstance == null)
+                firstInstance = this;
         }
 
         private void Destroy()
@@ -57,6 +60,16 @@ namespace PocketCartPlus
 
             Plugin.Spam("Starting cart coroutine!");
             MyCart.StartCoroutine(UpdateVisualsPatch.WaitToDisplay(this));
+        }
+
+        [PunRPC]
+        private void ReceiveItemsUpgrade(int upgradeLevel)
+        {
+            if (!UpgradeManager.LocalItemsUpgrade)
+                UpgradeManager.LocalItemsUpgrade = true;
+
+            if (upgradeLevel != UpgradeManager.CartItemsUpgradeLevel)
+                UpgradeManager.CartItemsUpgradeLevel = upgradeLevel;
         }
     }
 }

@@ -9,20 +9,23 @@ namespace PocketCartPlus
 {
     internal class CartItem : MonoBehaviour
     {
-        internal Vector3 PosOffset;
+        internal Vector3 PosOffset; //this is the local offset
         internal PhysGrabObject grabObj;
         internal bool isStored = false;
         internal Transform baseTransform;
         internal Vector3 OriginalScale;
         //internal Vector3 OriginalEnemyScale;
 
+        internal bool isPlayer = false;
+        internal PlayerAvatar playerRef = null!;
+
         internal EnemyRigidbody EnemyBody = null!;
         internal EnemyState OriginalState = EnemyState.None;
         internal List<Light> itemLights = [];
 
         internal PhysGrabCart MyCart = null!;
-        internal SpriteRenderer mapIcon = null!;
-        internal bool hasMapIcon = false;
+        //internal SpriteRenderer mapIcon = null!;
+        //internal bool hasMapIcon = false;
 
         internal void UpdateItem(PhysGrabObject item, PhysGrabCart cart)
         {
@@ -38,7 +41,6 @@ namespace PocketCartPlus
 
             MyCart = cart;
             grabObj = item;
-            hasMapIcon = mapIcon != null;
 
             itemLights = [.. gameObject.GetComponentsInChildren<Light>()];
 
@@ -71,73 +73,102 @@ namespace PocketCartPlus
 
         private Transform GetTransform(PhysGrabObject item)
         {
-            if (item.isEnemy)
-                return item.gameObject.gameObject.GetComponent<EnemyRigidbody>().enemyParent.gameObject.transform;
+            PlayerAvatar player;
 
-            if (item.isPlayer)
-                return item.gameObject.GetComponent<PlayerAvatar>().gameObject.transform;
+            if (item.gameObject.transform.parent == null)
+                player = null;
+            else
+                player = item.gameObject.transform.parent.GetComponentInChildren<PlayerAvatar>();
+
+            if (item.isEnemy)
+                return item.gameObject.GetComponent<EnemyRigidbody>().enemyParent.gameObject.transform;
+
+            if (player != null)
+            {
+                isPlayer = true;
+                playerRef = player;
+                return player.gameObject.transform;
+            }
 
             return item.gameObject.transform;
         }
 
         internal static void AddToEquip(PhysGrabObject item, PhysGrabCart cart)
-        {
-            if (item.isPlayer && ModConfig.PlayerSafetyCheck.Value)
-            {
-                Plugin.Spam("Skipping player!");
-                return;
-            }
-            
-            if (item.isEnemy && ModConfig.IgnoreEnemies.Value)
-            {
-                Plugin.Spam("Ignoring Enemy!");
-                return;
-            }    
-
-            //Disable item physics
-            item.rb.isKinematic = true;
-            item.isActive = false;
-            item.impactDetector.enabled = false;
-            item.impactDetector.isIndestructible = true;
-            
+        {        
             //Create/Update CartItem
             CartItem cartItem = item.gameObject.GetComponent<CartItem>() ?? item.gameObject.AddComponent<CartItem>();
             cartItem.UpdateItem(item, cart);
 
+            cart.StartCoroutine(cartItem.EquipToVoid());
+        }
+
+        internal IEnumerator EquipToVoid()
+        {
+            bool isPlayer = playerRef != null;
+
+            if (isPlayer && ModConfig.PlayerSafetyCheck.Value)
+            {
+                Plugin.Spam("Skipping player!");
+                yield break;
+            }
+
+            if (grabObj.isEnemy && ModConfig.IgnoreEnemies.Value)
+            {
+                Plugin.Spam("Ignoring Enemy!");
+                yield break;
+            }
+
+            if (isPlayer)
+            {
+                PocketDimension.TeleportPlayer(playerRef, PocketDimension.ThePocket.transform.position + new Vector3(0f, 10f * playerRef.transform.localScale.y, 0f), PocketDimension.ThePocket.transform.rotation);
+                Plugin.Spam($"Teleporting player to pocket dimension {PocketDimension.ThePocket.transform}");
+                //Set stored
+                isStored = true;
+                yield break;
+            }
+
+            //Disable item physics
+            grabObj.rb.isKinematic = true;
+            grabObj.isActive = false;
+            grabObj.impactDetector.enabled = false;
+            grabObj.impactDetector.isIndestructible = true;
+
             //Collider Disable
-            List<Collider> coll = [.. item.gameObject.GetComponentsInChildren<Collider>()];
+            List<Collider> coll = [.. baseTransform.gameObject.GetComponentsInChildren<Collider>()];
             coll.Do(c => c.enabled = false);
-            
+
 
             //Enemy Disable
-            if (cartItem.EnemyBody != null)
+            if (EnemyBody != null && EnemyBody.enemy.MasterClient)
             {
-                cartItem.EnemyBody.enabled = false;
-                if (cartItem.EnemyBody.enemy.HasNavMeshAgent && SemiFunc.IsMasterClientOrSingleplayer())
-                    cartItem.EnemyBody.enemy.NavMeshAgent.Disable(9999999f);
+                if (EnemyBody.enemy.HasNavMeshAgent && SemiFunc.IsMasterClientOrSingleplayer())
+                    EnemyBody.enemy.NavMeshAgent.Stop(9999999f);
 
-                //cartItem.EnemyBody.enemyParent.StartCoroutine(EquipPatch.ChangeSize(0.2f, cartItem.EnemyBody.enemyParent.transform.localScale * 0.01f, cartItem.EnemyBody.enemyParent.transform.localScale, cartItem.EnemyBody.enemyParent.transform));
+                EnemyBody.frozen = true;
             }
 
-            cart.StartCoroutine(EquipPatch.ChangeSize(0.2f, cartItem.baseTransform.localScale * 0.01f, cartItem.baseTransform.localScale, cartItem.baseTransform));
+            yield return EquipPatch.ChangeSize(0.2f, baseTransform.localScale * 0.01f, baseTransform.localScale, baseTransform);
 
             //Lights Disable
-            if (cartItem.itemLights.Count > 0)
-                cartItem.itemLights.Do(i => i.enabled = false);
+            if (itemLights.Count > 0)
+                itemLights.Do(i => i.enabled = false);
+
+            Vector3 scaledLocalOffset = PosOffset * 40f;
+            Vector3 buffer = new(1f, 1f, 1f);
+            baseTransform.position = PocketDimension.voidRef.inCart.transform.position + scaledLocalOffset + buffer;
+            yield return null;
+            yield return EquipPatch.ChangeSize(0.2f, OriginalScale * 40, baseTransform.localScale, baseTransform);
+
+            coll.Do(c => c.enabled = true);
+
+            //re-enable lights
+            if (itemLights.Count > 0)
+                itemLights.Do(i => i.enabled = true);
 
             //Set stored
-            cartItem.isStored = true;
+            isStored = true;
 
-            if (cartItem.hasMapIcon)
-            {
-                if (cartItem.mapIcon != null)
-                    cartItem.mapIcon.enabled = false;
-                else
-                    Plugin.WARNING($"Unable to hide map icon for {item.gameObject.name}");
-            }
-            
-            Plugin.Spam($"{item.gameObject.name} has been equipped with the cart!");
-            Plugin.Spam($"cartItem.grabObj is null [ {cartItem.grabObj == null} ]");
+            Plugin.Spam($"{gameObject.name} has been equipped with the cart!");
         }
 
         internal Vector3 ClampToCartBounds(PhysGrabCart cart)
@@ -149,8 +180,8 @@ namespace PocketCartPlus
             );
             Bounds combinedBounds = cart.capsuleColliders[0].bounds;
 
-            combinedBounds.min += new Vector3(0.2f, 0.2f, 0.2f);
-            combinedBounds.max -= new Vector3(0.2f, -1f, 0.2f);
+            combinedBounds.min += new Vector3(0.2f, 0.6f, 0.2f);
+            combinedBounds.max -= new Vector3(0.2f, -0.6f, 0.2f);
 
             cart.capsuleColliders.Do(c => combinedBounds.Encapsulate(c.bounds));
 
@@ -166,28 +197,42 @@ namespace PocketCartPlus
             if (OriginalScale != baseTransform.localScale)
                 baseTransform.localScale = Vector3.Lerp(baseTransform.localScale, OriginalScale, t);
 
-            //if (EnemyBody != null)
-            //{
-            //    if (OriginalEnemyScale != EnemyBody.enemyParent.transform.localScale)
-            //        EnemyBody.enemyParent.transform.localScale = Vector3.Lerp(EnemyBody.enemyParent.transform.localScale, OriginalEnemyScale, t);
-            //}
-
             baseTransform.position = ClampToCartBounds(cart);
         }
 
         internal IEnumerator RestoreItem(PhysGrabCart cart)
         {
             Plugin.Spam($"{gameObject.name} position: {baseTransform.position}");
+            bool isPlayer = playerRef != null;
+
+            //Collider Disable
+            List<Collider> coll = [.. baseTransform.gameObject.GetComponentsInChildren<Collider>()];
+            if (!isPlayer)
+                coll.Do(c => c.enabled = false);
+
+            yield return null;
+
+            if (isPlayer)
+            {
+                if (playerRef.isDisabled)
+                    baseTransform = playerRef.playerDeathHead.transform;
+                else
+                {
+                    PocketDimension.TeleportPlayer(playerRef, cart.transform.position + new Vector3(0f, 1f, 0f), cart.transform.rotation);
+                    Plugin.Spam($"Teleporting player back to level {cart.transform.position}");
+                    isStored = false;
+                    yield break;
+                }
+            }
+
+            baseTransform.localScale = OriginalScale * 0.1f;
 
             //Enable item physics
             grabObj.isActive = true;
             isStored = false;
+
             baseTransform.localScale = transform.localScale;
             baseTransform.position = ClampToCartBounds(cart);
-
-            //enable item lights
-            if (itemLights.Count > 0)
-                itemLights.Do(i => i.enabled = true);
 
             //wait for cart to stabilize
             float timer = 0f;
@@ -199,20 +244,20 @@ namespace PocketCartPlus
             }
 
             //Enable colliders
-            List<Collider> coll = [.. grabObj.gameObject.GetComponentsInChildren<Collider>()];
-            coll.Do(c => c.enabled = true);
+            if(!isPlayer)
+                coll.Do(c => c.enabled = true);
 
             //Set to original scale
             baseTransform.localScale = OriginalScale;
 
             //Enable Enemy stuff
-            if (EnemyBody != null)
+            if (EnemyBody != null && EnemyBody.enemy.MasterClient)
             {
                 EnemyBody.enabled = true;
                 if (EnemyBody.enemy.HasNavMeshAgent && SemiFunc.IsMasterClientOrSingleplayer())
                 {
                     Plugin.Spam("Enabling navmesh");
-                    EnemyBody.enemy.NavMeshAgent.Enable();
+                    EnemyBody.enemy.NavMeshAgent.StopTimer = 0f;
                     EnemyBody.enemy.EnemyTeleported(baseTransform.position);
                 }
                 yield return null;
@@ -224,14 +269,6 @@ namespace PocketCartPlus
             grabObj.impactDetector.enabled = true;
             grabObj.rb.isKinematic = false;
 
-            //enable map icon
-            if (hasMapIcon)
-            {
-                if (mapIcon != null)
-                    mapIcon.enabled = true;
-                else
-                    Plugin.WARNING($"Unable to show map icon for {gameObject.name}");
-            }
            
             //last safety check
             yield return new WaitForSeconds(ModConfig.ItemSafetyTimer.Value);
