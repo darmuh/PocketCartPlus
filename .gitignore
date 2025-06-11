@@ -434,3 +434,5 @@ FodyWeavers.xsd
 /_RELEASE/AsmResolver.PE.File.dll
 /_RELEASE/BepInEx.AssemblyPublicizer.dll
 /_RELEASE/BepInEx.AssemblyPublicizer.MSBuild.dll
+/_RELEASE/_RELEASE/pocketcartplus
+/pocketcartplus
