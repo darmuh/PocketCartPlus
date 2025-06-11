@@ -1,8 +1,5 @@
 # PocketCart Plus
 
-## NOTE: 0.3.5 has been compiled for v0.1.2.42_beta 
-*If you are not playing the beta version of the game, you will need to downgrade to version 0.3.0 or earlier...*  
-
 ### Improve the Pocket Cart with a new upgrade that can store items! Buy a larger pocket cart variant!  
 
 This mod is intended for use by **all clients** in a lobby. This mod provides **one** upgrade and **one** item that can be purchased in the shop that will enhance the pocket cart.  
@@ -13,13 +10,13 @@ This mod is intended for use by **all clients** in a lobby. This mod provides **
 	- When the pocket cart is stored, will store any items in the cart alongside it.  
 	- Configurable to be a shared upgrade or by individual.  
     - Items (and players if allowed) in the cart will be transported to the Pocket Dimension when a cart is pocketed.
-    - Enemies, if allowed via config, can also be pocketed when inside the pocket cart.  
+    - Enemies, if allowed via config, can also be pocketed when inside the pocket cart.
 **ITEM: Pocket C.A.R.T. PLUS**  
 	- This is a separate pocket cart item that has been recolored and will provide a slight size increase.
     - The base size increase is 125% of a standard pocket cart, with potential rare size increases of 150-175%.
-    - The rare size increases do not persist between levels so use them while you got them!  
+    - The rare size increases do not persist between levels so use them while you got them!
 
-### Configuration Options Explained  
+### Configuration Options Explained
 
 Debug: ``Developer Logging``  
     - This will allow you to see logging used to debug the mod.  
@@ -29,14 +26,14 @@ Keep Items Upgrade: ``Unlock without Upgrade``
 Keep Items Upgrade: ``Minimum Price``  
     - This will set the minimum base-price of the Keep Items Upgrade  
 Keep Items Upgrade: ``Maximum Price``  
-    - This will set the maximum base-price of the Keep Items Upgrade  
-Keep Items Upgrade: ``Rarity Percentage (Add-on)``  
-    - This is an added-on rarity percentage that is calculated before the shop initializes.  
-    - Set to 100% if you do not wish for added rarity.  
-Keep Items Upgrade: ``Shared Unlock``   
+    - This will set the maximum base-price of the Keep Items Upgrade 
+Keep Items Upgrade: ``Rarity Percentage (Add-on)``
+    - This is an added-on rarity percentage that is calculated before the shop initializes.
+    - Set to 100% if you do not wish for added rarity.
+Keep Items Upgrade: ``Shared Unlock``  
     - This will make the unlock shared. So if one player unlocks it all will have the upgrade.  
 Keep Items Upgrade: ``Ignore Enemies``  
-    - When disabled, the cart will try to also store enemies (this may cause issues with the enemy).  
+    - When disabled, the cart will try to also store enemies (this may cause issues with the enemy).
 Keep Items Upgrade: ``Player Safety Check``  
     - When disabled, a tumbled player can fall to their death when stored with the cart.  
 Keep Items Upgrade: ``Cart Stabilization Timer``  
@@ -47,16 +44,14 @@ Keep Items Upgrade: ``Show On MiniMap``
     - This will determine whether or not to show the upgrade's icon on the minimap.  
 Keep Items Upgrade: ``Upgrade Levels``  
     - When enabled, will limit the amount of pocket carts you can store items with to the number of times the upgrade has been purchased.  
-Keep Items Upgrade: ``Allow Deposit``  
-    - When enabled, holding ALT while pocketing a cart will allow you to deposit items rather than storing them.  
-Cart Plus Item: ``Minimum Price``   
+Keep Items Upgrade: ``Allow Deposit``
+    - When enabled, holding ALT while pocketing a cart will allow you to deposit items rather than storing them.
+Cart Plus Item: ``Minimum Price``  
     - This will set the minimum base-price of the POCKET C.A.R.T. Plus item.  
-Cart Plus Item: ``Maximum Price``  
-    - This will set the maximum base-price of the POCKET C.A.R.T. Plus item.   
+Cart Plus Item: ``Maximum Price`` 
+    - This will set the maximum base-price of the POCKET C.A.R.T. Plus item.  
 Cart Plus Item:  ``Rarity Percentage (Add-on)``  
     - This is an added-on rarity percentage that is calculated before the shop initializes.  
-Cart Plus Item: ``Rare Variants``  
-    - When enabled, the pocket cart plus has a rare chance to spawn as either the PLUS2 (150% scale) or PLUS3 (175% scale)  
         
 ### This mod is still WIP, if you run into issues please report them to the linked github.  
 

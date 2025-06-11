@@ -6,6 +6,7 @@ namespace PocketCartPlus
     {
         internal static bool LocalItemsUpgrade = false;
         internal static int CartItemsUpgradeLevel = 0;
-        internal static List<int> PlusSizesChosen = [];
+        //internal static List<int> PlusSizesChosen = [];
+        internal static List<PocketCartUpgradeSize> PlusSizeCarts = [];
     }
 }

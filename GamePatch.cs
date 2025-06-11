@@ -2,15 +2,80 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using static ItemEquippable;
 
 namespace PocketCartPlus
 {
 
-    [HarmonyPatch(typeof(SemiFunc), "OnLevelGenDone")]
+    //for adding UI hint to deposit items
+    [HarmonyPatch(typeof(PhysGrabCart), "StateMessages")]
+    public class CartMessagePatch
+    {
+        internal static Color hintColor = new(220f / 255f, 204f / 255f, 188f / 255f);
 
+        public static void Postfix(PhysGrabCart __instance)
+        {
+
+            if(!PlayerAvatar.instance.physGrabber.grabbed && HintUI.instance.grabHint)
+                HintUI.instance.grabHint = false;
+
+            if (!__instance.physGrabObject.grabbedLocal || !ModConfig.AllowDeposit.Value)
+                return;
+
+            if (!GetPocketCarts.AllSmallCarts.Contains(__instance))
+                return;
+
+            if (!ModConfig.KeepItemsUnlockNoUpgrade.Value && !UpgradeManager.LocalItemsUpgrade)
+                return;
+
+            if (!ModConfig.KeepItemsUnlockNoUpgrade.Value && ModConfig.CartItemLevels.Value && UpgradeManager.CartItemsUpgradeLevel <= CartManager.CartsStoringItems)
+                return;
+
+            if (__instance.currentState != PhysGrabCart.State.Handled && __instance.currentState != PhysGrabCart.State.Dragged)
+                return;
+
+            if (SemiFunc.RunIsShop())
+                return;  
+            
+
+            if(HintUI.instance.transform.parent != HintUI.instance.normalParent)
+                HintUI.instance.transform.SetParent(HintUI.instance.normalParent);
+
+            HintUI.instance.grabHint = true;
+            HintUI.instance.ShowInfo("Hold <color=#f0bf30>[ALT]</color> to deposit items", HintUI.instance.textColor, 12f);
+        }
+    }
+
+    [HarmonyPatch(typeof(ItemInfoExtraUI), "Start")]
+    public class CreateHintUI
+    {
+        public static GameObject Hinter;
+        public static void Postfix(ItemInfoExtraUI __instance)
+        {
+            if (HintUI.instance != null || __instance.Text == null)
+                return;
+
+            Plugin.Spam("Creating Hinter!");
+            Hinter = new("Hinter");
+            //GameObject.Instantiate<TextMeshProUGUI>(ItemInfoExtraUI.instance.Text, Hinter.gameObject.transform);
+            TextMeshProUGUI text = Hinter.AddComponent<TextMeshProUGUI>();
+            text.font = __instance.Text.font;
+            text.fontMaterial = __instance.Text.fontMaterial;
+            text.fontSharedMaterial = __instance.Text.fontSharedMaterial;
+            text.fontSharedMaterials = __instance.Text.fontSharedMaterials;
+            text.spriteAsset = __instance.Text.spriteAsset;
+            text.alignment = TextAlignmentOptions.Midline;
+            text.fontSize = 12f;
+            text.fontStyle = FontStyles.SmallCaps;
+            Hinter.AddComponent<RectTransform>();
+            Hinter.transform.SetParent(__instance.gameObject.transform);
+            Hinter.AddComponent<HintUI>();
+        }
+    }
+
+    [HarmonyPatch(typeof(SemiFunc), "OnLevelGenDone")]
     public class PocketDimension
     {
         internal static GameObject ThePocket;
@@ -256,7 +321,7 @@ namespace PocketCartPlus
     {
         public static void Postfix(ItemEquippable __instance)
         {
-            if (__instance.currentState != ItemState.Unequipping)
+            if (__instance.currentState != ItemEquippable.ItemState.Unequipping)
                 return;
 
             if (!UpgradeManager.LocalItemsUpgrade && !ModConfig.KeepItemsUnlockNoUpgrade.Value)

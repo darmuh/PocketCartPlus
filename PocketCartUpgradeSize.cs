@@ -9,6 +9,7 @@ namespace PocketCartPlus
     {
         internal static Value valuePreset = null!;
         internal static readonly float basePriceMultiplier = 4f;
+        public PhysGrabCart Cart;
         public float chosenScale = 1.25f;
         public Vector3 chosenVector3;
         internal ItemAttributes itemAtts = null!;
@@ -16,11 +17,15 @@ namespace PocketCartPlus
         private void Awake()
         {
             itemAtts = gameObject.GetComponent<ItemAttributes>();
+            Cart = gameObject.GetComponent<PhysGrabCart>();
 
             if (!SemiFunc.IsMasterClientOrSingleplayer())
                 return;
             
-            ChooseScale();      
+            ChooseScale();
+
+            UpgradeManager.PlusSizeCarts.RemoveAll(c => c == null);
+            UpgradeManager.PlusSizeCarts.Add(this);
         }
 
         private void Start()
@@ -40,7 +45,7 @@ namespace PocketCartPlus
             else
                 chosenScale = 1.5f;
 
-            if (SemiFunc.RunIsShop())
+            if (SemiFunc.RunIsShop() || !ModConfig.RareVariants.Value)
                 chosenScale = 1.25f;
 
             if (SemiFunc.IsMultiplayer())
@@ -98,7 +103,7 @@ namespace PocketCartPlus
         {
             bool shouldAdd = false;
 
-            Item cartPlus = REPOLib.Modules.Items.GetItemByName("Item Cart Small Plus");
+            Item cartPlus = REPOLib.Modules.Items.GetItemByName("Item PCartPlus");
 
             if (cartPlus == null)
             {

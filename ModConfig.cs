@@ -24,6 +24,7 @@ namespace PocketCartPlus
         internal static ConfigEntry<int> PlusItemRarity = null!;
         internal static ConfigEntry<float> PlusItemMinPrice = null!;
         internal static ConfigEntry<float> PlusItemMaxPrice = null!;
+        internal static ConfigEntry<bool> RareVariants = null!;
 
         internal static void Init()
         {
@@ -46,6 +47,7 @@ namespace PocketCartPlus
             PlusItemRarity = Plugin.instance.Config.Bind("Cart Plus Item", "Rarity Percentage (Add-on)", 95, new ConfigDescription("This is a percentage from 0-100 of how rarely this item will be added to the store.\nThis is an added-on rarity on-top of base-game's rng based spawn system.\n Set to 0 to never spawn this item.", new AcceptableValueRange<int>(0, 100)));
             PlusItemMinPrice = Plugin.instance.Config.Bind("Cart Plus Item", "Minimum Price", 30000f, new ConfigDescription("Set this as the minimum base price for this item (before multipliers)", new AcceptableValueRange<float>(100f, 90000f)));
             PlusItemMaxPrice = Plugin.instance.Config.Bind("Cart Plus Item", "Maximum Price", 60000f, new ConfigDescription("Set this as the maximum base price for this item (before multipliers)", new AcceptableValueRange<float>(100f, 90000f)));
+            RareVariants = Plugin.instance.Config.Bind("Cart Plus Item", "Rare Variants", true, "When enabled, the pocket cart plus has a rare chance to spawn as either the PLUS2 (150% scale) or PLUS3 (175% scale)");
         }
     }
 }

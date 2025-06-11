@@ -1,5 +1,4 @@
 ﻿using HarmonyLib;
-using REPOLib.Modules;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -120,10 +119,11 @@ namespace PocketCartPlus
 
             if (isPlayer)
             {
-                PocketDimension.TeleportPlayer(playerRef, PocketDimension.ThePocket.transform.position + new Vector3(0f, 10f * playerRef.transform.localScale.y, 0f), PocketDimension.ThePocket.transform.rotation);
+                PocketDimension.TeleportPlayer(playerRef, PocketDimension.ThePocket.transform.position + new Vector3(0f, 5f * playerRef.transform.localScale.y - Random.Range(0f, 2f), 0f), PocketDimension.ThePocket.transform.rotation);
                 Plugin.Spam($"Teleporting player to pocket dimension {PocketDimension.ThePocket.transform}");
                 //Set stored
                 isStored = true;
+                MyCart.GetComponent<CartManager>().storedPlayers++;
                 yield break;
             }
 
@@ -153,11 +153,31 @@ namespace PocketCartPlus
             if (itemLights.Count > 0)
                 itemLights.Do(i => i.enabled = false);
 
+            if(EnemyBody != null)
+            {
+                //Set stored
+                isStored = true;
+                Plugin.Spam($"{gameObject.name} has been equipped with the cart!");
+                yield break;
+            }
+
+            PocketCartUpgradeSize isPlus = MyCart.gameObject.GetComponent<PocketCartUpgradeSize>();
+            Vector3 LocalOffset = PosOffset;
+
+            if (isPlus != null)
+                LocalOffset /= isPlus.chosenScale;
+
             Vector3 scaledLocalOffset = PosOffset * 40f;
             Vector3 buffer = new(1f, 1f, 1f);
+
+
+
             baseTransform.position = PocketDimension.voidRef.inCart.transform.position + scaledLocalOffset + buffer;
+            
             yield return null;
-            yield return EquipPatch.ChangeSize(0.2f, OriginalScale * 40, baseTransform.localScale, baseTransform);
+            
+            if(!gameObject.GetComponent<PlayerDeathHead>())
+                yield return EquipPatch.ChangeSize(0.2f, OriginalScale * 40, baseTransform.localScale, baseTransform);
 
             coll.Do(c => c.enabled = true);
 
@@ -218,9 +238,10 @@ namespace PocketCartPlus
                     baseTransform = playerRef.playerDeathHead.transform;
                 else
                 {
-                    PocketDimension.TeleportPlayer(playerRef, cart.transform.position + new Vector3(0f, 1f, 0f), cart.transform.rotation);
-                    Plugin.Spam($"Teleporting player back to level {cart.transform.position}");
+                    PocketDimension.TeleportPlayer(playerRef, cart.inCart.position + new Vector3(0f, 1f, 0f), cart.inCart.rotation);
+                    Plugin.Spam($"Teleporting player back to level {cart.inCart.position}");
                     isStored = false;
+                    cart.GetComponent<CartManager>().storedPlayers = Mathf.Clamp(MyCart.GetComponent<CartManager>().storedPlayers - 1, 0, 99);
                     yield break;
                 }
             }
@@ -258,6 +279,7 @@ namespace PocketCartPlus
                 {
                     Plugin.Spam("Enabling navmesh");
                     EnemyBody.enemy.NavMeshAgent.StopTimer = 0f;
+                    EnemyBody.frozen = false;
                     EnemyBody.enemy.EnemyTeleported(baseTransform.position);
                 }
                 yield return null;

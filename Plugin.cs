@@ -17,7 +17,7 @@ namespace PocketCartPlus
         {
             public const string PLUGIN_GUID = "com.github.darmuh.PocketCartPlus";
             public const string PLUGIN_NAME = "PocketCart Plus";
-            public const string PLUGIN_VERSION = "0.3.0";
+            public const string PLUGIN_VERSION = "0.3.5";
         }
 
         internal static ManualLogSource Log = null!;
@@ -26,16 +26,20 @@ namespace PocketCartPlus
         internal static AssetBundle Bundle = null!;
         internal static AssetBundle PocketDimensionBundle = null!;
         internal static GameObject PocketDimension = null!;
+        internal static GameObject HintPrefab = null!;
 
         private void Awake()
         {
             instance = this;
             Log = base.Logger;
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} is loading with version {PluginInfo.PLUGIN_VERSION}!");
+            Log.LogInfo($"This version of the mod has been compiled for v0.1.2.42_beta :)");
             ModConfig.Init();
             string pluginFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            string assetBundleFilePath = Path.Combine(pluginFolderPath, "pocketcartplus");
+            string assetBundleFilePath = Path.Combine(pluginFolderPath, "upgrade_cartitems");
             string pocketDimension = Path.Combine(pluginFolderPath, "pocketdimension");
+            //string hintUI = Path.Combine(pluginFolderPath, "hintui");
+            //REPOLib.BundleLoader.LoadBundle(hintUI, BundleLoader, false);
             REPOLib.BundleLoader.LoadBundle(pocketDimension, BundleLoader, false);
             REPOLib.BundleLoader.LoadBundle(assetBundleFilePath, BundleLoader, true);
             
@@ -47,14 +51,14 @@ namespace PocketCartPlus
 
         private static IEnumerator BundleLoader(AssetBundle mybundle)
         {
-            if(mybundle.name == "pocketcartplus")
+            if(mybundle.name == "upgrade_cartitems")
             {
                 Bundle = mybundle;
                 yield return null;
                 Spam("Asset bundle has been loaded");
                 BundleLoaded = true;
             }
-            else
+            else if(mybundle.name == "pocketdimension")
             {
                 PocketDimensionBundle = mybundle;
                 PocketDimension = PocketDimensionBundle.LoadAsset<GameObject>("PocketDimension");

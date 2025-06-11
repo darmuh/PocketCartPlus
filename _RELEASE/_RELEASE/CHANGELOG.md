@@ -4,14 +4,6 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
-## [0.3.5] *assets rebuilt for beta + various bug fixes*
- - Fixed issues presented by the first beta version of the game.
-	- The plus version of the pocket cart has been completely remade.
-	- No longer has a different color from the original pocket cart.
- - Various bug fixes from 0.3.0 that I've had to hold onto until I could fix the asset to work with beta
- - Added hintui element for the deposit items keybind
-	- will also be used for another keybind that is not ready for this update ~~abandon players~~
-
 ## [0.3.0] *void update + bug fixes*
  - Added new pocket dimension void to transport items to.
 	- This should fix the somewhat inconsistent issue of map icons still not being removed from the radar.

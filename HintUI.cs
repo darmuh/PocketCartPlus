@@ -1,0 +1,69 @@
+﻿using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace PocketCartPlus
+{
+    public class HintUI : SemiUI
+    {
+        public TextMeshProUGUI Text;
+        public static HintUI instance;
+        public string messagePrev = "prev";
+        public float messageTimer;
+        public Color textColor;
+        internal Transform normalParent;
+        internal bool grabHint = false;
+
+        public override void Start()
+        {
+            base.Start();
+            Text = GetComponent<TextMeshProUGUI>();
+            Plugin.Spam($"Text == null | {Text == null}");
+            instance = this; 
+            Text.text = "";
+            normalParent = transform.parent;
+            showPosition.x = 0f;
+            showPosition.y = 0f;
+            textColor = new(0, 102, 0);
+            hidePosition.x = 0f;
+            hidePosition.y = -30f;
+        }
+
+        public void ShowInfo(string message, Color color, float fontSize)
+        {
+            if (!(messageTimer > 0f))
+            {
+                messageTimer = 0.2f;
+                if (message != messagePrev)
+                {
+                    Text.text = message;
+                    SemiUISpringShakeY(20f, 10f, 0.3f);
+                    SemiUISpringScale(0.4f, 5f, 0.2f);
+                    textColor = color;
+                    Text.fontSize = fontSize;
+                    ((Graphic)Text).color = textColor;
+                    messagePrev = message;
+                }
+            }
+        }
+
+        public override void Update()
+        {
+            base.Update();
+            if (SemiFunc.RunIsShop())
+                return;
+
+            if (messageTimer > 0f)
+            {
+                messageTimer -= Time.deltaTime;
+                ItemInfoUI.instance.SemiUIScoot(new Vector2(0f, 8f));
+            }
+            else
+            {
+                ((Graphic)Text).color = Color.white;
+                messagePrev = "prev";
+                Hide();
+            }
+        }
+    }
+}
