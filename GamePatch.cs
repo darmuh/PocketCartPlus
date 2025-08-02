@@ -10,7 +10,7 @@ namespace PocketCartPlus
 {
 
     //for adding UI hint to deposit items
-    [HarmonyPatch(typeof(PhysGrabCart), "StateMessages")]
+    [HarmonyPatch(typeof(PhysGrabCart), nameof(PhysGrabCart.StateMessages))]
     public class CartMessagePatch
     {
         internal static Color hintColor = new(220f / 255f, 204f / 255f, 188f / 255f);
@@ -48,7 +48,7 @@ namespace PocketCartPlus
         }
     }
 
-    [HarmonyPatch(typeof(ItemInfoExtraUI), "Start")]
+    [HarmonyPatch(typeof(ItemInfoExtraUI), nameof(ItemInfoExtraUI.Start))]
     public class CreateHintUI
     {
         public static GameObject Hinter;
@@ -75,7 +75,7 @@ namespace PocketCartPlus
         }
     }
 
-    [HarmonyPatch(typeof(SemiFunc), "OnLevelGenDone")]
+    [HarmonyPatch(typeof(SemiFunc), nameof(SemiFunc.OnLevelGenDone))]
     public class PocketDimension
     {
         internal static GameObject ThePocket;
@@ -117,7 +117,7 @@ namespace PocketCartPlus
         }
     }
 
-    [HarmonyPatch(typeof(CameraAim), "CameraAimSpawn")]
+    [HarmonyPatch(typeof(CameraAim), nameof(CameraAim.CameraAimSpawn))]
     public class SpawnPlayerStuff
     {
         public static void Postfix()
@@ -147,7 +147,7 @@ namespace PocketCartPlus
         
     }
 
-    [HarmonyPatch(typeof(StatsManager), "LoadGame")]
+    [HarmonyPatch(typeof(StatsManager), nameof(StatsManager.LoadGame))]
     public class StatsManagerLoad
     {
         public static void Postfix()
@@ -156,7 +156,7 @@ namespace PocketCartPlus
         }
     }
 
-    [HarmonyPatch(typeof(StatsManager), "Start")]
+    [HarmonyPatch(typeof(StatsManager), nameof(StatsManager.Start))]
     public class StatsManagerStart
     {
         public static void Postfix(StatsManager __instance)
@@ -168,7 +168,7 @@ namespace PocketCartPlus
         }
     }
 
-    [HarmonyPatch(typeof(RunManager), "ResetProgress")]
+    [HarmonyPatch(typeof(RunManager), nameof(RunManager.ResetProgress))]
     public class ResetStuff
     {
         public static void Postfix()
@@ -178,7 +178,7 @@ namespace PocketCartPlus
     }
 
     //LeaveToMainMenu
-    [HarmonyPatch(typeof(RunManager), "LeaveToMainMenu")]
+    [HarmonyPatch(typeof(RunManager), nameof(RunManager.LeaveToMainMenu))]
     public class LeaveToMainReset
     {
         public static void Postfix()
@@ -188,7 +188,7 @@ namespace PocketCartPlus
     }
 
     //price and rarity config patch
-    [HarmonyPatch(typeof(SemiFunc), "ShopPopulateItemVolumes")]
+    [HarmonyPatch(typeof(SemiFunc), nameof(SemiFunc.ShopPopulateItemVolumes))]
     public class ModifyItemRarity
     {
         public static void Prefix()
@@ -206,7 +206,7 @@ namespace PocketCartPlus
         }
     }
 
-    [HarmonyPatch(typeof(PhysGrabCart), "Start")]
+    [HarmonyPatch(typeof(PhysGrabCart), nameof(PhysGrabCart.Start))]
     public class GetPocketCarts
     {
         public static List<PhysGrabCart> AllSmallCarts = [];
@@ -223,7 +223,7 @@ namespace PocketCartPlus
     }
 
     //for pocketcart upgraded size
-    [HarmonyPatch(typeof(ItemEquippable), "AnimateUnequip")]
+    [HarmonyPatch(typeof(ItemEquippable), nameof(ItemEquippable.AnimateUnequip))]
     public class FixScaleofPlus
     {
         public static void Postfix(ItemEquippable __instance)
@@ -239,7 +239,7 @@ namespace PocketCartPlus
     }
 
     //need to patch here to parent transform early enough
-    [HarmonyPatch(typeof(ItemEquippable), "RequestEquip")]
+    [HarmonyPatch(typeof(ItemEquippable), nameof(ItemEquippable.RequestEquip))]
     public class EquipPatch
     {
         internal static List<CartItem> AllCartItems = [];
@@ -316,7 +316,7 @@ namespace PocketCartPlus
         }
     }
 
-    [HarmonyPatch(typeof(ItemEquippable), "UpdateVisuals")]
+    [HarmonyPatch(typeof(ItemEquippable), nameof(ItemEquippable.UpdateVisuals))]
     public class UpdateVisualsPatch
     {
         public static void Postfix(ItemEquippable __instance)
