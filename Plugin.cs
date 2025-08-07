@@ -12,7 +12,7 @@ using UnityEngine;
 namespace PocketCartPlus
 {
     [BepInPlugin("com.github.darmuh.PocketCartPlus", "PocketCart Plus", (PluginInfo.PLUGIN_VERSION))]
-    [BepInDependency("REPOLib", "2.0.0")]
+    [BepInDependency("REPOLib", "2.1.0")]
     public class Plugin : BaseUnityPlugin
     {
         public static Plugin instance = null!;

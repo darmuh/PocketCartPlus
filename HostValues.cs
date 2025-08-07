@@ -1,9 +1,7 @@
 ﻿using BepInEx.Configuration;
 using HarmonyLib;
 using Photon.Pun;
-using System;
 using static PocketCartPlus.ModConfig;
-using static Unity.IO.LowLevel.Unsafe.AsyncReadManagerMetrics;
 
 namespace PocketCartPlus
 {

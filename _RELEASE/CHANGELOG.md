@@ -6,7 +6,18 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [0.4.0] *many fixes and one new item*
 - Fixed issues with the void asset having a missing prefab (no idea how/when this happened)
-- General code cleanup w
+- Added new handling for host-based config items.
+	- Each host-based config item has been identified and their values will be networked to other players (if necessary)
+	- Config sync will be done once per lobby load and for individual items that are changed by the host mid-game
+- General code cleanup in relation to the keep items upgrade.
+	- Will now directly get upgrade count from the base game upgrade manager rather than tracking via a separate value
+	- Should hopefully fix some of the various issues reported where the upgrade stops working intermitently or entirely.
+- Removed custom teleport method for base game's teleport method used by photonTransformView
+	- Should make teleportation of items/players more consistent
+- Added new item ``Void Remote`` which allows you to lock/unlock the void exit for all players.
+	- This item will spawn as an item in the "Secret Shop" (the attic)
+	- Like the other items this mod adds, added rarity and price values are configurable.
+	- When locked in the void, the player will chat to the truck similar to when the truck is leaving.
 
 ## [0.3.5] *assets rebuilt for beta + various bug fixes*
  - Fixed issues presented by the first beta version of the game.

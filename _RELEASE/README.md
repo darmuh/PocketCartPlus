@@ -1,11 +1,8 @@
 # PocketCart Plus
 
-## NOTE: 0.3.5 has been compiled for v0.1.2.42_beta 
-*If you are not playing the beta version of the game, you will need to downgrade to version 0.3.0 or earlier...*  
+### Improve the Pocket Cart with a new upgrade that can store items! Buy a larger pocket cart variant! Lock players in a void! 
 
-### Improve the Pocket Cart with a new upgrade that can store items! Buy a larger pocket cart variant!  
-
-This mod is intended for use by **all clients** in a lobby. This mod provides **one** upgrade and **one** item that can be purchased in the shop that will enhance the pocket cart.  
+This mod is intended for use by **all clients** in a lobby. This mod provides **one** upgrade and **two** items that can be purchased in the shop.
 
 ### Features:
 
@@ -14,6 +11,11 @@ This mod is intended for use by **all clients** in a lobby. This mod provides **
 	- Configurable to be a shared upgrade or by individual.  
     - Items (and players if allowed) in the cart will be transported to the Pocket Dimension when a cart is pocketed.
     - Enemies, if allowed via config, can also be pocketed when inside the pocket cart.  
+**ITEM: Void Remote**  (For use with the above upgrade)
+	- This is a small item that will spawn in the secret shop (attic)
+    - You may use this item to lock and unlock the exit of the void for players.
+    - If the void is locked, a player will not be returned with the cart they were teleported out in.
+    - While locked in the void, the player will send reminder messages to the truck that they are stuck.
 **ITEM: Pocket C.A.R.T. PLUS**  
 	- This is a separate pocket cart item that has been recolored and will provide a slight size increase.
     - The base size increase is 125% of a standard pocket cart, with potential rare size increases of 150-175%.
@@ -57,9 +59,15 @@ Cart Plus Item:  ``Rarity Percentage (Add-on)``
     - This is an added-on rarity percentage that is calculated before the shop initializes.  
 Cart Plus Item: ``Rare Variants``  
     - When enabled, the pocket cart plus has a rare chance to spawn as either the PLUS2 (150% scale) or PLUS3 (175% scale)  
-        
+Void Remote Item: ``Minimum Price``   
+    - This will set the minimum base-price of the Void Remote Item.  
+Void Remote Item: ``Maximum Price``  
+    - This will set the maximum base-price of the Void Remote Item.   
+Void Remote Item:  ``Rarity Percentage (Add-on)``  
+    - This is an added-on rarity percentage that is calculated before the shop initializes.  
+
 ### This mod is still WIP, if you run into issues please report them to the linked github.  
 
 ### Last update to this page:  
-April 24th, 2025 (version 0.3.0)  
+August 7th, 2025 (version 0.3.5)  
 *Changelog may have more up-to-date information than this page at times.*
