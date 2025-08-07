@@ -45,7 +45,7 @@ namespace PocketCartPlus
             else
                 chosenScale = 1.5f;
 
-            if (SemiFunc.RunIsShop() || !ModConfig.RareVariants.Value)
+            if (SemiFunc.RunIsShop() || !HostValues.PlusCartRareVariants.Value)
                 chosenScale = 1.25f;
 
             if (SemiFunc.IsMultiplayer())
@@ -92,11 +92,11 @@ namespace PocketCartPlus
             if (valuePreset == null)
                 valuePreset = ScriptableObject.CreateInstance<Value>();
 
-            valuePreset.valueMin = ModConfig.PlusItemMinPrice.Value / basePriceMultiplier;
-            valuePreset.valueMax = ModConfig.PlusItemMaxPrice.Value / basePriceMultiplier;
+            valuePreset.valueMin = HostValues.PlusCartMinPrice.Value / basePriceMultiplier;
+            valuePreset.valueMax = HostValues.PlusCartMaxPrice.Value / basePriceMultiplier;
             valuePreset.name = "pocketcartplus_value";
 
-            Plugin.Spam($"valuePreset created for cartPlus upgrade with base min price of {ModConfig.PlusItemMinPrice.Value} and base max price of {ModConfig.PlusItemMaxPrice.Value}");
+            Plugin.Spam($"valuePreset created for cartPlus upgrade with base min price of {HostValues.PlusCartMinPrice.Value} and base max price of {HostValues.PlusCartMaxPrice.Value}");
         }
 
         internal static void ShopPatch()
@@ -111,7 +111,7 @@ namespace PocketCartPlus
                 return;
             }
 
-            if (ModConfig.PlusItemRarity.Value >= Plugin.Rand.Next(0, 100))
+            if (HostValues.PlusCartRarity.Value >= Plugin.Rand.Next(0, 100))
                 shouldAdd = true;
 
             if (!shouldAdd && ShopManager.instance.potentialItems.Contains(cartPlus))

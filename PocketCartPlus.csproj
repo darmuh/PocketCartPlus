@@ -114,12 +114,16 @@
     <Compile Include="CartManager.cs" />
     <Compile Include="GamePatch.cs" />
     <Compile Include="HintUI.cs" />
+    <Compile Include="HostConfigItem.cs" />
+    <Compile Include="HostValues.cs" />
     <Compile Include="ModConfig.cs" />
+    <Compile Include="GlobalNetworking.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="PocketCartUpgradeItems.cs" />
     <Compile Include="PocketCartUpgradeSize.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UpgradeManager.cs" />
+    <Compile Include="VoidController.cs" />
     <Compile Include="VoidRef.cs" />
   </ItemGroup>
   <ItemGroup>

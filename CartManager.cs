@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 using Photon.Pun;
-using System.Collections;
+using System.Linq;
 using UnityEngine;
 
 namespace PocketCartPlus
@@ -9,10 +9,12 @@ namespace PocketCartPlus
     public class CartManager : MonoBehaviour
     {
         internal PhotonView photonView = null!;
-        internal bool hasItems = false;
+        internal bool HasItems()
+        {
+            return EquipPatch.AllCartItems.Any(i => i.MyCart == MyCart);
+        }
         internal bool isStoringItems = false;
         internal bool isShowingItems = false;
-        internal int storedPlayers = 0;
         internal static int CartsStoringItems = 0;
         internal PhysGrabCart MyCart = null!;
         internal string storedBy = string.Empty;
@@ -34,29 +36,6 @@ namespace PocketCartPlus
             Plugin.Spam("CartManager destroyed!");
         }
 
-        internal IEnumerator AbandonPlayerHint()
-        {
-            string messageText = "Hold <color=#f0bf30>[ALT]</color> to <color=#8E2E22>ABANDON</color> PLAYER";
-            HintUI.instance.grabHint = false;
-            while (storedPlayers > 0)
-            {
-                if(HintUI.instance.grabHint)
-                {
-                    yield return new WaitUntil(() => HintUI.instance.grabHint == false);
-                    yield return new WaitUntil(() => HintUI.instance.messageTimer <= 0f);
-                }
-
-                if(HintUI.instance.transform.parent != InventoryUI.instance.transform)
-                { 
-                    HintUI.instance.transform.SetParent(InventoryUI.instance.transform);
-                }
-
-                HintUI.instance.ShowInfo($"{messageText}", textColor, 12f);
-                HintUI.instance.Show();
-                yield return null;
-            }
-        }
-
         [PunRPC]
         internal void HideCartItems(string steamID)
         {
@@ -75,12 +54,9 @@ namespace PocketCartPlus
 
             EquipPatch.AllCartItems.RemoveAll(c => c.grabObj == null);
             isStoringItems = false;
-            hasItems = true;
             if (storedBy == PlayerAvatar.instance.steamID)
             {
                 CartsStoringItems++;
-                //if(storedPlayers > 0)
-                    //StartCoroutine(AbandonPlayerHint());
             }
                
         }

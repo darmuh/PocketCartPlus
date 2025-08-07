@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.4.0] *many fixes and one new item*
+- Fixed issues with the void asset having a missing prefab (no idea how/when this happened)
+- General code cleanup w
+
 ## [0.3.5] *assets rebuilt for beta + various bug fixes*
  - Fixed issues presented by the first beta version of the game.
 	- The plus version of the pocket cart has been completely remade.

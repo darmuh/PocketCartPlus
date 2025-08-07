@@ -1,10 +1,13 @@
-﻿using BepInEx.Logging;
-using BepInEx;
+﻿using BepInEx;
+using BepInEx.Configuration;
+using BepInEx.Logging;
 using HarmonyLib;
+using Photon.Pun;
+using System;
+using System.Collections;
+using System.IO;
 using System.Reflection;
 using UnityEngine;
-using System.IO;
-using System.Collections;
 
 namespace PocketCartPlus
 {
@@ -17,7 +20,7 @@ namespace PocketCartPlus
         {
             public const string PLUGIN_GUID = "com.github.darmuh.PocketCartPlus";
             public const string PLUGIN_NAME = "PocketCart Plus";
-            public const string PLUGIN_VERSION = "0.3.5";
+            public const string PLUGIN_VERSION = "0.4.0";
         }
 
         internal static ManualLogSource Log = null!;
@@ -33,7 +36,7 @@ namespace PocketCartPlus
             instance = this;
             Log = base.Logger;
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} is loading with version {PluginInfo.PLUGIN_VERSION}!");
-            Log.LogInfo($"This version of the mod has been compiled for v0.1.2.42_beta :)");
+            Log.LogInfo($"This version of the mod has been compiled for REPO version 0.2.1 :)");
             ModConfig.Init();
             string pluginFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string assetBundleFilePath = Path.Combine(pluginFolderPath, "upgrade_cartitems");
@@ -43,10 +46,27 @@ namespace PocketCartPlus
             REPOLib.BundleLoader.LoadBundle(pocketDimension, BundleLoader, false);
             REPOLib.BundleLoader.LoadBundle(assetBundleFilePath, BundleLoader, true);
             
-            //Config.ConfigReloaded += OnConfigReloaded;
+            Config.ConfigReloaded += OnConfigReloaded;
+            Config.SettingChanged += OnSettingChanged;
+
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 
             Log.LogInfo($"{PluginInfo.PLUGIN_NAME} load complete!");
+        }
+
+        public void OnConfigReloaded(object sender, EventArgs e)
+        {
+            Log.LogDebug("Config has been reloaded!");
+            if(PhotonNetwork.MasterClient != null)
+                HostValues.StartGame();
+        }
+
+        public void OnSettingChanged(object sender, SettingChangedEventArgs settingChangedArg)
+        {
+            if (settingChangedArg.ChangedSetting == null)
+                return;
+
+            HostValues.UpdateValue(settingChangedArg.ChangedSetting);
         }
 
         private static IEnumerator BundleLoader(AssetBundle mybundle)

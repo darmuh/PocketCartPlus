@@ -53,10 +53,11 @@ namespace PocketCartPlus
             if (SemiFunc.RunIsShop())
                 return;
 
+            ItemInfoUI.instance.SemiUIScoot(new Vector2(0f, 8f));
+
             if (messageTimer > 0f)
             {
                 messageTimer -= Time.deltaTime;
-                ItemInfoUI.instance.SemiUIScoot(new Vector2(0f, 8f));
             }
             else
             {

@@ -16,11 +16,9 @@ namespace PocketCartPlus
         internal Item itemComponent = null!;
         internal MapCustom mapCustom = null!;
 
-        internal static bool LoadNewSave = true;
-
         //static
         //internal static bool SaveLoaded = false;
-        internal static Dictionary<string, int> dictionaryOfClients = [];
+        internal static Dictionary<string, int> ClientsUpgradeDictionary = [];
         internal static List<string> ClientsUnlockedOLD = [];
         internal static Value valuePreset = null!;
         internal static readonly float basePriceMultiplier = 4f;
@@ -50,7 +48,6 @@ namespace PocketCartPlus
 
         internal static void ClientsUnlocked()
         {
-            LoadNewSave = false;
             if (!SemiFunc.IsMasterClientOrSingleplayer())
                 return;
 
@@ -59,7 +56,7 @@ namespace PocketCartPlus
 
             GameDirector.instance.PlayerList.Do(p =>
             {
-                if (!dictionaryOfClients.TryGetValue(p.steamID, out int value))
+                if (!ClientsUpgradeDictionary.TryGetValue(p.steamID, out int value))
                 {
                     Plugin.Spam($"{p.playerName} does not exist in listing");
                     return;
@@ -79,7 +76,7 @@ namespace PocketCartPlus
                     sharedLevel = value;
 
                 //no need to target individual player
-                if (ModConfig.CartItemsUpgradeShared.Value)
+                if (HostValues.ShareKeepUpgrade.Value)
                     return;
 
                 Plugin.Spam($"Host has detected {p.playerName} as having CartItemsUpgrade unlocked. Telling client to enable behavior with level {value}");
@@ -88,7 +85,7 @@ namespace PocketCartPlus
                 //Networking.UnlockUpgrade.RaiseEvent(Networking.CartItemsUpgrade + $":{value}", custom, SendOptions.SendReliable);
             });
 
-            if (!ModConfig.CartItemsUpgradeShared.Value)
+            if (!HostValues.ShareKeepUpgrade.Value)
                 return;
 
             if (clientsUnlocked > 0)
@@ -101,7 +98,7 @@ namespace PocketCartPlus
         internal static void InitDictionary()
         {
             Plugin.Spam("Creating dictionary listing");
-            dictionaryOfClients = [];
+            ClientsUpgradeDictionary = [];
             
             if (!PhotonNetwork.IsMasterClient)
                 return;
@@ -114,8 +111,8 @@ namespace PocketCartPlus
                 if (p.steamID == null)
                     return;
 
-                if (!dictionaryOfClients.ContainsKey(p.steamID))
-                    dictionaryOfClients.Add(p.steamID, 0);
+                if (!ClientsUpgradeDictionary.ContainsKey(p.steamID))
+                    ClientsUpgradeDictionary.Add(p.steamID, 0);
             });
         }
 
@@ -123,9 +120,8 @@ namespace PocketCartPlus
         {
             Plugin.Message($"UpgradeItems progress reset, will be refreshed by next save");
             CartManager.CartsStoringItems = 0;
-            CartItemsUpgradeLevel = 0;
             LocalItemsUpgrade = false;
-            dictionaryOfClients = [];
+            ClientsUpgradeDictionary = [];
         }
 
         internal static void LoadStart()
@@ -133,16 +129,15 @@ namespace PocketCartPlus
             //convert old save data
             LoadSave();
             Plugin.Spam("--- Start of Clients Unlocked List ---");
-            dictionaryOfClients.Do(d => Plugin.Spam($"{d.Key}"));
+            ClientsUpgradeDictionary.Do(d => Plugin.Spam($"{d.Key}"));
             Plugin.Spam("--- End of ClientsUnlocked List ---");
-
-            LoadNewSave = true;
+            ClientsUnlocked();
         }
 
         internal static void LoadSave()
         {
             Plugin.Spam("Loading unlocked clients listing from statsmanager!");
-            if (!StatsManager.instance.dictionaryOfDictionaries.TryGetValue("playerUpgradePocketcartKeepItems", out dictionaryOfClients))
+            if (!StatsManager.instance.dictionaryOfDictionaries.TryGetValue("playerUpgradePocketcartKeepItems", out ClientsUpgradeDictionary))
                 Plugin.WARNING("Unable to load save key!");
 
             //Get old save key info
@@ -155,7 +150,7 @@ namespace PocketCartPlus
                 //return;
 
             Plugin.Spam("Updating PocketCartUpgrades_ItemsUpgrade in dictionary!");
-            StatsManager.instance.dictionaryOfDictionaries["playerUpgradePocketcartKeepItems"] = dictionaryOfClients;
+            StatsManager.instance.dictionaryOfDictionaries["playerUpgradePocketcartKeepItems"] = ClientsUpgradeDictionary;
         }
 
         private static void GetOldSaveData()
@@ -169,12 +164,12 @@ namespace PocketCartPlus
                     ClientsUnlockedOLD.RemoveAll(c => c == null);
                     ClientsUnlockedOLD.Do(c =>
                     {
-                        if (!dictionaryOfClients.ContainsKey(c))
-                            dictionaryOfClients.Add(c, 1);
+                        if (!ClientsUpgradeDictionary.ContainsKey(c))
+                            ClientsUpgradeDictionary.Add(c, 1);
                         else
                         {
-                            if (dictionaryOfClients[c] == 0)
-                                dictionaryOfClients[c] = 1;
+                            if (ClientsUpgradeDictionary[c] == 0)
+                                ClientsUpgradeDictionary[c] = 1;
                         }
                     });
                 }
@@ -198,20 +193,20 @@ namespace PocketCartPlus
                 Plugin.Spam($"Enabling PocketCart Keep Items Upgrade for local player! Level [ {CartItemsUpgradeLevel} ]");
             }
 
-            if (!dictionaryOfClients.TryGetValue(playerAvatar.steamID, out int upgradeLevel))
+            if (!ClientsUpgradeDictionary.TryGetValue(playerAvatar.steamID, out int upgradeLevel))
             {
-                Plugin.WARNING($"Unable to find [ {playerAvatar.steamID} ] in dictionaryOfClients, creating new entry at level 1!");
-                dictionaryOfClients.Add(playerAvatar.steamID, 1);
+                Plugin.Spam($"Unable to find [ {playerAvatar.steamID} ] in ClientsUpgradeDictionary, creating new entry at level 1!");
+                ClientsUpgradeDictionary.Add(playerAvatar.steamID, 1);
             }
             else
-                dictionaryOfClients[playerAvatar.steamID]++;
+                ClientsUpgradeDictionary[playerAvatar.steamID]++;
 
             UpdateSave();
 
             if (!SemiFunc.IsMasterClientOrSingleplayer())
                 return;
 
-            if (ModConfig.CartItemsUpgradeShared.Value)
+            if (HostValues.ShareKeepUpgrade.Value)
             {
                 Plugin.Spam("Sending upgrade status to all other clients!");
                 List<Player> allOthers = [.. PhotonNetwork.PlayerListOthers];
@@ -244,11 +239,11 @@ namespace PocketCartPlus
             if (valuePreset == null)
                 valuePreset = ScriptableObject.CreateInstance<Value>();
 
-            valuePreset.valueMin = ModConfig.CartItemsMinPrice.Value / basePriceMultiplier;
-            valuePreset.valueMax = ModConfig.CartItemsMaxPrice.Value / basePriceMultiplier;
+            valuePreset.valueMin = HostValues.KeepMinPrice.Value / basePriceMultiplier;
+            valuePreset.valueMax = HostValues.KeepMaxPrice.Value / basePriceMultiplier;
             valuePreset.name = "pocketcart_keepitems";
 
-            Plugin.Spam($"valuePreset created for keepItems upgrade with base min price of {ModConfig.CartItemsMinPrice.Value} and base max price of {ModConfig.CartItemsMaxPrice.Value}");
+            Plugin.Spam($"valuePreset created for keepItems upgrade with base min price of {HostValues.KeepMinPrice.Value} and base max price of {HostValues.KeepMaxPrice.Value}");
         }
 
         internal static void ShopPatch()
@@ -263,7 +258,7 @@ namespace PocketCartPlus
                 return;
             }
 
-            if (ModConfig.CartItemRarity.Value >= Plugin.Rand.Next(0, 100))
+            if (HostValues.KeepItemsRarity.Value >= Plugin.Rand.Next(0, 100))
                 shouldAdd = true;
 
             if (!shouldAdd && ShopManager.instance.potentialItemUpgrades.Contains(keepItems))

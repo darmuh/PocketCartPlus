@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using Photon.Pun;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,10 +29,10 @@ namespace PocketCartPlus
             if (!GetPocketCarts.AllSmallCarts.Contains(__instance))
                 return;
 
-            if (!ModConfig.KeepItemsUnlockNoUpgrade.Value && !UpgradeManager.LocalItemsUpgrade)
+            if (!HostValues.KeepNoUpgrade.Value && !UpgradeManager.LocalItemsUpgrade)
                 return;
 
-            if (!ModConfig.KeepItemsUnlockNoUpgrade.Value && ModConfig.CartItemLevels.Value && UpgradeManager.CartItemsUpgradeLevel <= CartManager.CartsStoringItems)
+            if (!HostValues.KeepNoUpgrade.Value && HostValues.KeepItemsLevels.Value && UpgradeManager.CartItemsUpgradeLevel <= CartManager.CartsStoringItems)
                 return;
 
             if (__instance.currentState != PhysGrabCart.State.Handled && __instance.currentState != PhysGrabCart.State.Dragged)
@@ -54,12 +56,14 @@ namespace PocketCartPlus
         public static GameObject Hinter;
         public static void Postfix(ItemInfoExtraUI __instance)
         {
+            if (!SpawnPlayerStuff.AreWeInGame())
+                return;
+
             if (HintUI.instance != null || __instance.Text == null)
                 return;
 
             Plugin.Spam("Creating Hinter!");
             Hinter = new("Hinter");
-            //GameObject.Instantiate<TextMeshProUGUI>(ItemInfoExtraUI.instance.Text, Hinter.gameObject.transform);
             TextMeshProUGUI text = Hinter.AddComponent<TextMeshProUGUI>();
             text.font = __instance.Text.font;
             text.fontMaterial = __instance.Text.fontMaterial;
@@ -85,52 +89,31 @@ namespace PocketCartPlus
             if (!SpawnPlayerStuff.AreWeInGame())
                 return;
 
-            ThePocket = GameObject.Instantiate(Plugin.PocketDimension, new Vector3(999f, 0, 0), new Quaternion(), LevelGenerator.Instance.LevelParent.transform);
-            voidRef = ThePocket.GetComponentInChildren<VoidRef>();
-            Plugin.Spam($"voidRef is null - {voidRef == null}");
-            //TeleportMe();
-
-        }
-
-        internal static void TeleportPlayer(PlayerAvatar player, Vector3 position, Quaternion rotation)
-        {
-            if (player.isLocal)
+            if(ThePocket == null)
             {
-                if(player.isTumbling)
-                    player.tumble.TumbleSet(false, false);
-
-                PlayerController.instance.transform.position = position;
-                PlayerController.instance.transform.rotation = rotation;
+                ThePocket = GameObject.Instantiate(Plugin.PocketDimension, new Vector3(999f, 0, 0), new Quaternion(), LevelGenerator.Instance.LevelParent.transform);
             }
 
-            player.rb.position = position;
-            player.rb.rotation = rotation;
-            player.transform.position = position;
-            player.transform.rotation = rotation;
-            player.clientPosition = position;
-            player.clientPositionCurrent = position;
-            player.clientRotation = rotation;
-            player.clientRotationCurrent = rotation;
-            player.playerAvatarVisuals.visualPosition = position;
+            if(voidRef == null)
+            {
+                voidRef = ThePocket.GetComponentInChildren<VoidRef>();
+                Plugin.Spam($"voidRef is null - {voidRef == null}");
+            }
 
-            Plugin.Spam($"{player.playerName} teleported to position {position}");
         }
     }
 
-    [HarmonyPatch(typeof(CameraAim), nameof(CameraAim.CameraAimSpawn))]
+    [HarmonyPatch(typeof(PlayerAvatar), nameof(PlayerAvatar.SpawnRPC))]
     public class SpawnPlayerStuff
     {
-        public static void Postfix()
+        public static void Postfix(PlayerAvatar __instance)
         {
-            if (!AreWeInGame())
+            if (!AreWeInGame() || !__instance.photonView.IsMine)
                 return;
 
             //Reset CartsStoringItems amount (since they have just spawned and cant possibly be storing items)
             Plugin.Message("Player Spawned: CartsStoringItems set to 0");
             CartManager.CartsStoringItems = 0;
-
-            if(PocketCartUpgradeItems.LoadNewSave)
-                PocketCartUpgradeItems.ClientsUnlocked();
         }
 
         internal static bool AreWeInGame()
@@ -142,9 +125,7 @@ namespace PocketCartPlus
                 return false;
 
             return true;
-        }
-
-        
+        } 
     }
 
     [HarmonyPatch(typeof(StatsManager), nameof(StatsManager.LoadGame))]
@@ -156,6 +137,24 @@ namespace PocketCartPlus
         }
     }
 
+    [HarmonyPatch(typeof(RunManagerPUN), nameof(RunManagerPUN.Start))]
+    public class NetworkingInstance
+    {
+        public static void Postfix()
+        {
+            if (RunManager.instance.runManagerPUN.gameObject.GetComponent<GlobalNetworking>() == null)
+                RunManager.instance.runManagerPUN.gameObject.AddComponent<GlobalNetworking>();
+
+            HostConfigCheck();
+        }
+
+        internal static void HostConfigCheck()
+        {
+            if (!HostConfigBase.HostConfigInit && PhotonNetwork.MasterClient != null)
+                HostValues.StartGame();
+        }
+    }
+
     [HarmonyPatch(typeof(StatsManager), nameof(StatsManager.Start))]
     public class StatsManagerStart
     {
@@ -164,26 +163,24 @@ namespace PocketCartPlus
             PocketCartUpgradeItems.InitDictionary();
             Plugin.Spam("Updating statsmanager with our save keys!");
             if (!__instance.dictionaryOfDictionaries.ContainsKey("playerUpgradePocketcartKeepItems"))
-                __instance.dictionaryOfDictionaries.Add("playerUpgradePocketcartKeepItems", PocketCartUpgradeItems.dictionaryOfClients);
+                __instance.dictionaryOfDictionaries.Add("playerUpgradePocketcartKeepItems", PocketCartUpgradeItems.ClientsUpgradeDictionary);
         }
     }
 
-    [HarmonyPatch(typeof(RunManager), nameof(RunManager.ResetProgress))]
-    public class ResetStuff
-    {
-        public static void Postfix()
-        {
-            PocketCartUpgradeItems.ResetProgress();
-        }
-    }
-
-    //LeaveToMainMenu
-    [HarmonyPatch(typeof(RunManager), nameof(RunManager.LeaveToMainMenu))]
+    [HarmonyPatch(typeof(SemiFunc), nameof(SemiFunc.OnSceneSwitch))]
     public class LeaveToMainReset
     {
-        public static void Postfix()
+        public static void Postfix(bool _gameOver, bool _leaveGame)
         {
-            PocketCartUpgradeItems.ResetProgress();
+            if(_gameOver || _leaveGame)
+            {
+                PocketCartUpgradeItems.ResetProgress();
+            }
+
+            NetworkingInstance.HostConfigCheck();
+
+            if (HostConfigBase.HostConfigInit)
+                HostConfigBase.HostConfigInit = !_leaveGame;
         }
     }
 
@@ -199,10 +196,12 @@ namespace PocketCartPlus
             //prices
             PocketCartUpgradeItems.ValueRef();
             PocketCartUpgradeSize.ValueRef();
+            VoidController.ValueRef();
 
             //add-on rarities
             PocketCartUpgradeItems.ShopPatch();
             PocketCartUpgradeSize.ShopPatch();
+            VoidController.ShopPatch();
         }
     }
 
@@ -245,7 +244,7 @@ namespace PocketCartPlus
         internal static List<CartItem> AllCartItems = [];
         public static void Postfix(ItemEquippable __instance)
         {
-            if (!UpgradeManager.LocalItemsUpgrade && !ModConfig.KeepItemsUnlockNoUpgrade.Value)
+            if (!UpgradeManager.LocalItemsUpgrade && !HostValues.KeepNoUpgrade.Value)
                 return;
 
             Plugin.Spam("Checking item being equipped");
@@ -274,7 +273,7 @@ namespace PocketCartPlus
                 return;
             }
 
-            if (!ModConfig.KeepItemsUnlockNoUpgrade.Value && ModConfig.CartItemLevels.Value)
+            if (!HostValues.KeepNoUpgrade.Value && HostValues.KeepItemsLevels.Value)
             {
 
                 //compare local upgrade level to amount of carts storing items
@@ -324,7 +323,7 @@ namespace PocketCartPlus
             if (__instance.currentState != ItemEquippable.ItemState.Unequipping)
                 return;
 
-            if (!UpgradeManager.LocalItemsUpgrade && !ModConfig.KeepItemsUnlockNoUpgrade.Value)
+            if (!UpgradeManager.LocalItemsUpgrade && !HostValues.KeepNoUpgrade.Value)
                 return;
 
             Plugin.Spam("Unequip detected! Checking if this item is a cart we care about");
@@ -352,7 +351,7 @@ namespace PocketCartPlus
                 return;
             }
 
-            if (!cartManager.hasItems)
+            if (!cartManager.HasItems())
                 return;
 
             if (SemiFunc.IsMultiplayer())
@@ -390,14 +389,13 @@ namespace PocketCartPlus
             EquipPatch.AllCartItems.RemoveAll(c => c == null || c.grabObj == null);
 
             Plugin.Spam($"AllCartItems count - {EquipPatch.AllCartItems.Count}\nRestoring items in cart!");
-            EquipPatch.AllCartItems.DoIf(x => x.isStored && x.MyCart == cart, x =>
+            EquipPatch.AllCartItems.DoIf(x => x.IsStored && x.MyCart == cart, x =>
             {
                 cart.StartCoroutine(x.RestoreItem(cart));
             });
 
             yield return null;
             cartManager.isShowingItems = false;
-            cartManager.hasItems = false;
             if(cartManager.storedBy == PlayerAvatar.instance.steamID)
                 CartManager.CartsStoringItems = Mathf.Clamp(CartManager.CartsStoringItems - 1, 0, 99);
         }

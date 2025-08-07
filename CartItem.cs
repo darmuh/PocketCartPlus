@@ -1,4 +1,6 @@
 ﻿using HarmonyLib;
+using Photon.Pun;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,12 +12,15 @@ namespace PocketCartPlus
     {
         internal Vector3 PosOffset; //this is the local offset
         internal PhysGrabObject grabObj;
-        internal bool isStored = false;
+        internal bool IsStored { get; private set; } = false;
         internal Transform baseTransform;
         internal Vector3 OriginalScale;
-        //internal Vector3 OriginalEnemyScale;
+        internal PhotonTransformView photonTransformView;
 
-        internal bool isPlayer = false;
+        internal bool IsPlayer()
+        {
+            return playerRef != null;
+        }
         internal PlayerAvatar playerRef = null!;
 
         internal EnemyRigidbody EnemyBody = null!;
@@ -23,8 +28,8 @@ namespace PocketCartPlus
         internal List<Light> itemLights = [];
 
         internal PhysGrabCart MyCart = null!;
-        //internal SpriteRenderer mapIcon = null!;
-        //internal bool hasMapIcon = false;
+
+        internal static List<string> stuckMessages = ["They left me behind! :(", "I can't believe they locked me out", "**** i'm stuck", "Help?", "Is anyone there?", "Someone PLEASE unlock the void", "I wonder if they can hear my cries..."];
 
         internal void UpdateItem(PhysGrabObject item, PhysGrabCart cart)
         {
@@ -35,6 +40,7 @@ namespace PocketCartPlus
             }
 
             baseTransform = GetTransform(item);
+            photonTransformView = gameObject.GetComponentInChildren<PhotonTransformView>();
             PosOffset = baseTransform.position - cart.inCart.position;
             OriginalScale = baseTransform.localScale;
 
@@ -84,7 +90,6 @@ namespace PocketCartPlus
 
             if (player != null)
             {
-                isPlayer = true;
                 playerRef = player;
                 return player.gameObject.transform;
             }
@@ -105,13 +110,13 @@ namespace PocketCartPlus
         {
             bool isPlayer = playerRef != null;
 
-            if (isPlayer && ModConfig.PlayerSafetyCheck.Value)
+            if (isPlayer && HostValues.PlayerSafety.Value)
             {
                 Plugin.Spam("Skipping player!");
                 yield break;
             }
 
-            if (grabObj.isEnemy && ModConfig.IgnoreEnemies.Value)
+            if (grabObj.isEnemy && HostValues.KeepIgnoreEnemies.Value)
             {
                 Plugin.Spam("Ignoring Enemy!");
                 yield break;
@@ -119,11 +124,13 @@ namespace PocketCartPlus
 
             if (isPlayer)
             {
-                PocketDimension.TeleportPlayer(playerRef, PocketDimension.ThePocket.transform.position + new Vector3(0f, 5f * playerRef.transform.localScale.y - Random.Range(0f, 2f), 0f), PocketDimension.ThePocket.transform.rotation);
+                playerRef.tumble.TumbleSet(true, false);
+                yield return null;
+                photonTransformView.Teleport(PocketDimension.ThePocket.transform.position + new Vector3(0f, 5f * playerRef.transform.localScale.y - UnityEngine.Random.Range(0f, 2f), 0f), PocketDimension.ThePocket.transform.rotation);
+                //PocketDimension.TeleportPlayer(playerRef, PocketDimension.ThePocket.transform.position + new Vector3(0f, 5f * playerRef.transform.localScale.y - UnityEngine.Random.Range(0f, 2f), 0f), PocketDimension.ThePocket.transform.rotation);
                 Plugin.Spam($"Teleporting player to pocket dimension {PocketDimension.ThePocket.transform}");
                 //Set stored
-                isStored = true;
-                MyCart.GetComponent<CartManager>().storedPlayers++;
+                IsStored = true;
                 yield break;
             }
 
@@ -156,7 +163,7 @@ namespace PocketCartPlus
             if(EnemyBody != null)
             {
                 //Set stored
-                isStored = true;
+                IsStored = true;
                 Plugin.Spam($"{gameObject.name} has been equipped with the cart!");
                 yield break;
             }
@@ -170,10 +177,9 @@ namespace PocketCartPlus
             Vector3 scaledLocalOffset = PosOffset * 40f;
             Vector3 buffer = new(1f, 1f, 1f);
 
+            photonTransformView.Teleport(PocketDimension.voidRef.inCart.transform.position + scaledLocalOffset + buffer, baseTransform.rotation);
+            //baseTransform.position = PocketDimension.voidRef.inCart.transform.position + scaledLocalOffset + buffer;
 
-
-            baseTransform.position = PocketDimension.voidRef.inCart.transform.position + scaledLocalOffset + buffer;
-            
             yield return null;
             
             if(!gameObject.GetComponent<PlayerDeathHead>())
@@ -186,7 +192,7 @@ namespace PocketCartPlus
                 itemLights.Do(i => i.enabled = true);
 
             //Set stored
-            isStored = true;
+            IsStored = true;
 
             Plugin.Spam($"{gameObject.name} has been equipped with the cart!");
         }
@@ -234,14 +240,29 @@ namespace PocketCartPlus
 
             if (isPlayer)
             {
+                if (VoidController.VoidIsLocked)
+                {
+                    Plugin.Log.LogMessage($"The void is locked! {playerRef.playerName} will not be returned to play area!!");
+
+                    if (playerRef.isLocal)
+                    {
+                        ChatManager.instance.PossessChatScheduleStart(0);
+                        ChatManager.instance.PossessChat(ChatManager.PossessChatID.SelfDestruct, stuckMessages[UnityEngine.Random.Range(0, stuckMessages.Count - 1)], 5f, Color.red, 0f, true);
+                        ChatManager.instance.PossessChatScheduleEnd();
+                    }
+                    yield break;
+                }
+
                 if (playerRef.isDisabled)
                     baseTransform = playerRef.playerDeathHead.transform;
                 else
                 {
-                    PocketDimension.TeleportPlayer(playerRef, cart.inCart.position + new Vector3(0f, 1f, 0f), cart.inCart.rotation);
+                    playerRef.tumble.TumbleSet(true, false);
+                    yield return null;
+                    photonTransformView.Teleport(cart.inCart.position + new Vector3(0f, 1f, 0f), cart.inCart.rotation);
+                    //PocketDimension.TeleportPlayer(playerRef, cart.inCart.position + new Vector3(0f, 1f, 0f), cart.inCart.rotation);
                     Plugin.Spam($"Teleporting player back to level {cart.inCart.position}");
-                    isStored = false;
-                    cart.GetComponent<CartManager>().storedPlayers = Mathf.Clamp(MyCart.GetComponent<CartManager>().storedPlayers - 1, 0, 99);
+                    IsStored = false;
                     yield break;
                 }
             }
@@ -250,14 +271,14 @@ namespace PocketCartPlus
 
             //Enable item physics
             grabObj.isActive = true;
-            isStored = false;
+            IsStored = false;
 
             baseTransform.localScale = transform.localScale;
-            baseTransform.position = ClampToCartBounds(cart);
+            photonTransformView.Teleport(ClampToCartBounds(cart), baseTransform.rotation);
 
             //wait for cart to stabilize
             float timer = 0f;
-            while (timer < ModConfig.CartStabilizationTimer.Value)
+            while (timer < HostValues.StabilzeTimer.Value)
             {
                 timer += Time.deltaTime;
                 LerpItem(cart, timer);
@@ -293,7 +314,7 @@ namespace PocketCartPlus
 
            
             //last safety check
-            yield return new WaitForSeconds(ModConfig.ItemSafetyTimer.Value);
+            yield return new WaitForSeconds(HostValues.SafetyTimer.Value);
             grabObj.impactDetector.isIndestructible = false;
             Plugin.Spam("RestoreItem complete!");
         }
