@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.4.1]
+- Added credits for free unity asset used in VoidRemote
+- readme fixes
+
+
 ## [0.4.0] *many fixes and one new item*
 - Fixed issues with the void asset having a missing prefab (no idea how/when this happened)
 - Added new handling for host-based config items.
@@ -17,7 +22,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 - Added new item ``Void Remote`` which allows you to lock/unlock the void exit for all players.
 	- This item will spawn as an item in the "Secret Shop" (the attic)
 	- Like the other items this mod adds, added rarity and price values are configurable.
-	- When locked in the void, the player will chat to the truck similar to when the truck is leaving.
+	- When locked in the void, the player will chat to the truck similar to when the truck is leaving.  
 
 ## [0.3.5] *assets rebuilt for beta + various bug fixes*
  - Fixed issues presented by the first beta version of the game.
@@ -25,7 +30,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 	- No longer has a different color from the original pocket cart.
  - Various bug fixes from 0.3.0 that I've had to hold onto until I could fix the asset to work with beta
  - Added hintui element for the deposit items keybind
-	- will also be used for another keybind that is not ready for this update ~~abandon players~~
+	- will also be used for another keybind that is not ready for this update ~~abandon players~~  
 
 ## [0.3.0] *void update + bug fixes*
  - Added new pocket dimension void to transport items to.
