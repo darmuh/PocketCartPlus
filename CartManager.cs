@@ -69,15 +69,5 @@ namespace PocketCartPlus
             Plugin.Spam("Starting cart coroutine!");
             MyCart.StartCoroutine(UpdateVisualsPatch.WaitToDisplay(this));
         }
-
-        [PunRPC]
-        private void ReceiveItemsUpgrade(int upgradeLevel)
-        {
-            if (!UpgradeManager.LocalItemsUpgrade)
-                UpgradeManager.LocalItemsUpgrade = true;
-
-            if (upgradeLevel != UpgradeManager.CartItemsUpgradeLevel)
-                UpgradeManager.CartItemsUpgradeLevel = upgradeLevel;
-        }
     }
 }

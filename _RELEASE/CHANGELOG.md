@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
 ## [0.4.1]
 - Added credits for free unity asset used in VoidRemote
-- readme fixes
+- Various Readme fixes
+- Fixed null reference errors in relation to reloading a previous save that had the Keep Items upgrade unlocked
+- Fixed hosts getting double the upgrade levels for the keep items upgrade after the first initial upgrade
 
 
 ## [0.4.0] *many fixes and one new item*

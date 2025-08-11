@@ -107,5 +107,15 @@ namespace PocketCartPlus
                 item.ValueIsReady();
             }
         }
+
+        [PunRPC]
+        internal void ReceiveItemsUpgrade(int upgradeLevel)
+        {
+            if (!UpgradeManager.LocalItemsUpgrade)
+                UpgradeManager.LocalItemsUpgrade = true;
+
+            if (upgradeLevel != UpgradeManager.CartItemsUpgradeLevel)
+                UpgradeManager.CartItemsUpgradeLevel = upgradeLevel;
+        }
     }
 }

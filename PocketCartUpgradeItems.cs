@@ -1,6 +1,5 @@
 using HarmonyLib;
 using Photon.Pun;
-using Photon.Realtime;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -81,7 +80,10 @@ namespace PocketCartPlus
 
                 Plugin.Spam($"Host has detected {p.playerName} as having CartItemsUpgrade unlocked. Telling client to enable behavior with level {value}");
 
-                CartManager.firstInstance.photonView.RPC("ReceiveItemsUpgrade", p.photonView.Owner, value);
+                if (p.isLocal)
+                    GlobalNetworking.Instance.ReceiveItemsUpgrade(value);
+                else
+                    GlobalNetworking.Instance.photonView.RPC("ReceiveItemsUpgrade", p.photonView.Owner, value);
                 //Networking.UnlockUpgrade.RaiseEvent(Networking.CartItemsUpgrade + $":{value}", custom, SendOptions.SendReliable);
             });
 
@@ -91,7 +93,7 @@ namespace PocketCartPlus
             if (clientsUnlocked > 0)
             {
                 Plugin.Spam($"Host has shared upgrades enabled and detected [ {clientsUnlocked} ] with the upgrade unlocked. Highest upgrade level set to [ {sharedLevel} ]");
-                CartManager.firstInstance.photonView.RPC("ReceiveItemsUpgrade", RpcTarget.Others, sharedLevel);
+                GlobalNetworking.Instance.photonView.RPC("ReceiveItemsUpgrade", RpcTarget.Others, sharedLevel);
             }
         }
 
@@ -187,10 +189,6 @@ namespace PocketCartPlus
             {
                 if (!LocalItemsUpgrade)
                     LocalItemsUpgrade = true;
-
-                CartItemsUpgradeLevel++;
-
-                Plugin.Spam($"Enabling PocketCart Keep Items Upgrade for local player! Level [ {CartItemsUpgradeLevel} ]");
             }
 
             if (!ClientsUpgradeDictionary.TryGetValue(playerAvatar.steamID, out int upgradeLevel))
@@ -209,14 +207,8 @@ namespace PocketCartPlus
             if (HostValues.ShareKeepUpgrade.Value)
             {
                 Plugin.Spam("Sending upgrade status to all other clients!");
-                List<Player> allOthers = [.. PhotonNetwork.PlayerListOthers];
-                if (allOthers.Contains(playerAvatar.photonView.Owner))
-                    allOthers.Remove(playerAvatar.photonView.Owner);
 
-                allOthers.Do(o =>
-                {
-                    photonView.RPC("ReceiveUpgrade", o, CartItemsUpgradeLevel);
-                });
+                photonView.RPC("ReceiveUpgrade", RpcTarget.Others, CartItemsUpgradeLevel);
             }
         }
 
