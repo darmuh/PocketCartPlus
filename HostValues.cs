@@ -60,7 +60,7 @@ namespace PocketCartPlus
             }
 
             GlobalNetworking.Instance.HostSendIndividual(configItem.Definition.Key, configItem.BoxedValue);
-            GlobalNetworking.Instance.photonView.RPC("HostSendIndividual", RpcTarget.Others, configItem.Definition.Key, configItem.BoxedValue);
+            GlobalNetworking.Instance.photonView.RPC("HostSendIndividual", RpcTarget.OthersBuffered, configItem.Definition.Key, configItem.BoxedValue);
         }
     }
 }

@@ -20,7 +20,7 @@ namespace PocketCartPlus
         {
             public const string PLUGIN_GUID = "com.github.darmuh.PocketCartPlus";
             public const string PLUGIN_NAME = "PocketCart Plus";
-            public const string PLUGIN_VERSION = "0.4.0";
+            public const string PLUGIN_VERSION = "0.4.2";
         }
 
         internal static ManualLogSource Log = null!;

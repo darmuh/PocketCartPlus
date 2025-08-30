@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.4.2]
+- Fixed issue with Void Remote asset where RoomVolumeScript scale/position was not set correctly, resulting in incorrect calculations for the shop extraction point. (Thanks CoolLKKPS for the report)
+- Updated all RpcTargets to use Buffered variant to include clients who join after the Rpc has been run. This should keep things more in sync between players
+
 ## [0.4.1]
 - Added credits for free unity asset used in VoidRemote
 - Various Readme fixes

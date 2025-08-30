@@ -49,7 +49,7 @@ namespace PocketCartPlus
                 chosenScale = 1.25f;
 
             if (SemiFunc.IsMultiplayer())
-                photonView.RPC("SyncScale", RpcTarget.All, chosenScale);
+                photonView.RPC("SyncScale", RpcTarget.AllBuffered, chosenScale);
             else
                 SyncScale(chosenScale);
         }

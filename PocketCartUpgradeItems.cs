@@ -93,7 +93,7 @@ namespace PocketCartPlus
             if (clientsUnlocked > 0)
             {
                 Plugin.Spam($"Host has shared upgrades enabled and detected [ {clientsUnlocked} ] with the upgrade unlocked. Highest upgrade level set to [ {sharedLevel} ]");
-                GlobalNetworking.Instance.photonView.RPC("ReceiveItemsUpgrade", RpcTarget.Others, sharedLevel);
+                GlobalNetworking.Instance.photonView.RPC("ReceiveItemsUpgrade", RpcTarget.OthersBuffered, sharedLevel);
             }
         }
 
@@ -208,7 +208,7 @@ namespace PocketCartPlus
             {
                 Plugin.Spam("Sending upgrade status to all other clients!");
 
-                photonView.RPC("ReceiveUpgrade", RpcTarget.Others, CartItemsUpgradeLevel);
+                photonView.RPC("ReceiveUpgrade", RpcTarget.OthersBuffered, CartItemsUpgradeLevel);
             }
         }
 

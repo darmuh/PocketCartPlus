@@ -80,7 +80,7 @@ namespace PocketCartPlus
                 keypadDisplayText.text = "UNLOCKED";
             }
 
-            photonView.RPC("SyncVoidStatus", RpcTarget.Others, VoidIsLocked);
+            photonView.RPC("SyncVoidStatus", RpcTarget.OthersBuffered, VoidIsLocked);
         }
 
         [PunRPC]

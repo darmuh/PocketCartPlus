@@ -290,7 +290,7 @@ namespace PocketCartPlus
             }
             
             if (SemiFunc.IsMultiplayer())
-                cartManager.photonView.RPC("HideCartItems", Photon.Pun.RpcTarget.All, PlayerAvatar.instance.steamID);
+                cartManager.photonView.RPC("HideCartItems", RpcTarget.AllBuffered, PlayerAvatar.instance.steamID);
             else
                 cartManager.HideCartItems(PlayerAvatar.instance.steamID);
 
@@ -354,7 +354,7 @@ namespace PocketCartPlus
                 return;
 
             if (SemiFunc.IsMultiplayer())
-                cartManager.photonView.RPC("ShowCartItems", Photon.Pun.RpcTarget.All);
+                cartManager.photonView.RPC("ShowCartItems", RpcTarget.AllBuffered);
             else
                 cartManager.ShowCartItems();
         }
