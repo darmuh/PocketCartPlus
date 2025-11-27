@@ -9,7 +9,7 @@ namespace PocketCartPlus
 {
     public class PocketCartUpgradeItems : MonoBehaviour
     {
-        internal static PocketCartUpgradeItems instance;
+        internal static PocketCartUpgradeItems instance = null!;
         internal PhotonView photonView = null!;
         internal ItemToggle itemToggle = null!;
         internal Item itemComponent = null!;
@@ -84,7 +84,6 @@ namespace PocketCartPlus
                     GlobalNetworking.Instance.ReceiveItemsUpgrade(value);
                 else
                     GlobalNetworking.Instance.photonView.RPC("ReceiveItemsUpgrade", p.photonView.Owner, value);
-                //Networking.UnlockUpgrade.RaiseEvent(Networking.CartItemsUpgrade + $":{value}", custom, SendOptions.SendReliable);
             });
 
             if (!HostValues.ShareKeepUpgrade.Value)
@@ -113,8 +112,7 @@ namespace PocketCartPlus
                 if (p.steamID == null)
                     return;
 
-                if (!ClientsUpgradeDictionary.ContainsKey(p.steamID))
-                    ClientsUpgradeDictionary.Add(p.steamID, 0);
+                ClientsUpgradeDictionary.TryAdd(p.steamID, 0);
             });
         }
 
@@ -146,7 +144,7 @@ namespace PocketCartPlus
             GetOldSaveData();
         }
 
-        internal void UpdateSave()
+        internal static void UpdateSave()
         {
             //if (!SemiFunc.IsMasterClientOrSingleplayer())
                 //return;
@@ -197,7 +195,11 @@ namespace PocketCartPlus
                 ClientsUpgradeDictionary.Add(playerAvatar.steamID, 1);
             }
             else
+            {
+                Plugin.Spam($"Found [{playerAvatar.steamID}] in ClientsUpgradeDictionary, adding to current upgradeLevel - [{upgradeLevel}]");
                 ClientsUpgradeDictionary[playerAvatar.steamID]++;
+            }
+                
 
             UpdateSave();
 
@@ -236,43 +238,6 @@ namespace PocketCartPlus
             valuePreset.name = "pocketcart_keepitems";
 
             Plugin.Spam($"valuePreset created for keepItems upgrade with base min price of {HostValues.KeepMinPrice.Value} and base max price of {HostValues.KeepMaxPrice.Value}");
-        }
-
-        internal static void ShopPatch()
-        {
-            bool shouldAdd = false;
-
-            Item keepItems = REPOLib.Modules.Items.GetItemByName("Item PocketCart Items");
-
-            if (keepItems == null)
-            {
-                Plugin.Spam($"Item not found!");
-                return;
-            }
-
-            if (HostValues.KeepItemsRarity.Value >= Plugin.Rand.Next(0, 100))
-                shouldAdd = true;
-
-            if (!shouldAdd && ShopManager.instance.potentialItemUpgrades.Contains(keepItems))
-            {
-                int CountToReplace = ShopManager.instance.potentialItems.Count(i => i.itemAssetName == keepItems.itemAssetName);
-                Plugin.Spam($"Add-on rarity has determined {keepItems.itemName} should be removed from the store! Original contains {CountToReplace} of this item");
-                ShopManager.instance.potentialItemUpgrades.RemoveAll(i => i.itemAssetName == keepItems.itemAssetName);
-
-                if (CountToReplace > 0 && ShopManager.instance.potentialItemUpgrades.Count > 0)
-                {
-                    for (int i = 0; i < CountToReplace; i++)
-                    {
-                        ShopManager.instance.potentialItemUpgrades.Add(ShopManager.instance.potentialItemUpgrades[Plugin.Rand.Next(0, ShopManager.instance.potentialItemUpgrades.Count)]);
-                        Plugin.Spam("Replaced upgrade with another random valid upgrade");
-                    }
-                }
-            }
-                
-
-            Plugin.Spam($"Rarity determined item is a valid potential itemUpgrade in the shop {shouldAdd}");
-            keepItems.value = valuePreset;
-            Plugin.Spam($"Value preset set for KeepPocketCartItems Upgrade!");
         }
     }
 }

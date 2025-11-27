@@ -4,6 +4,6 @@ namespace PocketCartPlus
 {
     public class VoidRef : MonoBehaviour
     {
-        public GameObject inCart;
+        public GameObject inCart = null!;
     }
 }

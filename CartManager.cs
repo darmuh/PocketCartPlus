@@ -18,7 +18,7 @@ namespace PocketCartPlus
         internal static int CartsStoringItems = 0;
         internal PhysGrabCart MyCart = null!;
         internal string storedBy = string.Empty;
-        internal static CartManager firstInstance;
+        internal static CartManager firstInstance = null!;
 
         private static Color textColor = new(209f / 255f, 205f / 255f, 205f / 255f);
 

@@ -6,19 +6,24 @@ namespace PocketCartPlus
 {
     public class HintUI : SemiUI
     {
-        public TextMeshProUGUI Text;
-        public static HintUI instance;
+        public TextMeshProUGUI Text = null!;
+        internal static HintUI instance = null!;
         public string messagePrev = "prev";
         public float messageTimer;
         public Color textColor;
-        internal Transform normalParent;
+        internal Transform normalParent = null!;
         internal bool grabHint = false;
 
         public override void Start()
         {
             base.Start();
             Text = GetComponent<TextMeshProUGUI>();
-            Plugin.Spam($"Text == null | {Text == null}");
+            if(Text == null)
+            {
+                Plugin.Log.LogError("NULL HINTER TEXT!!");
+                return;
+            }
+
             instance = this; 
             Text.text = "";
             normalParent = transform.parent;
@@ -31,7 +36,7 @@ namespace PocketCartPlus
 
         public void ShowInfo(string message, Color color, float fontSize)
         {
-            if (!(messageTimer > 0f))
+            if (messageTimer <= 0f)
             {
                 messageTimer = 0.2f;
                 if (message != messagePrev)

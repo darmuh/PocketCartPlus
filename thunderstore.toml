@@ -1,0 +1,53 @@
+[config]
+schemaVersion = "0.0.1"
+
+[general]
+repository = "https://thunderstore.io"
+
+[package]
+namespace = "darmuh"
+name = "PocketCartPlus"
+description = "Improve the Pocket Cart with a new upgrade that can store items! Buy a larger pocket cart variant! Lock players in a void!"
+websiteUrl = "https://github.com/darmuh/PocketCartPlus" # TODO: Add a link to your mod repository here (optional)
+containsNsfwContent = false
+
+[package.dependencies]
+BepInEx-BepInExPack = "5.4.2304"
+Zehs-REPOLib = "3.0.2"
+
+[build]
+icon = "/_RELEASE/icon.png"
+readme = "/_RELEASE/README.md"
+outdir = "/artifacts/thunderstore/"
+
+[[build.copy]]
+source = "/artifacts/bin/PocketCartPlus/release/com.github.darmuh.PocketCartPlus.dll"
+target = "plugins/"
+
+[[build.copy]]
+source = "/_RELEASE/CHANGELOG.md"
+target = "/"
+
+[[build.copy]]
+source = "/_RELEASE/LICENSE.MD"
+target = "/"
+
+[[build.copy]]
+source = "pocketdimension"
+target = "plugins/"
+
+[[build.copy]]
+source = "upgrade_cartitems"
+target = "plugins/"
+
+# The following config options only apply when using TCLI to publish to Thunderstore directly:
+
+[publish]
+# See communities at:
+# https://thunderstore.io/api/experimental/community/
+communities = [ "repo" ]
+
+[publish.categories]
+# See categories at:
+# https://thunderstore.io/api/experimental/community/repo/category/
+repo = [ "mods", "items", "upgrades" ]

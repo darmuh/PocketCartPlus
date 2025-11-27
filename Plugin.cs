@@ -1,27 +1,23 @@
-﻿using BepInEx;
+﻿using System;
+using System.Collections;
+using System.IO;
+using System.Reflection;
+using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using Photon.Pun;
-using System;
-using System.Collections;
-using System.IO;
-using System.Reflection;
+using REPOLib;
 using UnityEngine;
 
 namespace PocketCartPlus
 {
-    [BepInPlugin("com.github.darmuh.PocketCartPlus", "PocketCart Plus", (PluginInfo.PLUGIN_VERSION))]
-    [BepInDependency("REPOLib", "2.1.0")]
-    public class Plugin : BaseUnityPlugin
+    
+    [BepInDependency(MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
+    [BepInAutoPlugin]
+    public partial class Plugin : BaseUnityPlugin
     {
-        public static Plugin instance = null!;
-        public static class PluginInfo
-        {
-            public const string PLUGIN_GUID = "com.github.darmuh.PocketCartPlus";
-            public const string PLUGIN_NAME = "PocketCart Plus";
-            public const string PLUGIN_VERSION = "0.4.2";
-        }
+        internal static Plugin instance = null!;
 
         internal static ManualLogSource Log = null!;
         internal static bool BundleLoaded = false;
@@ -35,8 +31,8 @@ namespace PocketCartPlus
         {
             instance = this;
             Log = base.Logger;
-            Log.LogInfo($"{PluginInfo.PLUGIN_NAME} is loading with version {PluginInfo.PLUGIN_VERSION}!");
-            Log.LogInfo($"This version of the mod has been compiled for REPO version 0.2.1 :)");
+            Log.LogInfo($"{Name} is loading with version {Version}!");
+            Log.LogInfo($"This version of the mod has been compiled for REPO version 0.3.1 :)");
             ModConfig.Init();
             string pluginFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string assetBundleFilePath = Path.Combine(pluginFolderPath, "upgrade_cartitems");
@@ -51,7 +47,7 @@ namespace PocketCartPlus
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly());
 
-            Log.LogInfo($"{PluginInfo.PLUGIN_NAME} load complete!");
+            Log.LogInfo($"{Name} load complete!");
         }
 
         public void OnConfigReloaded(object sender, EventArgs e)

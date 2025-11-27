@@ -16,15 +16,15 @@ namespace PocketCartPlus
         internal static readonly float basePriceMultiplier = 4f;
         internal static Value valuePreset = null!;
         internal ItemAttributes itemAtts = null!;
-        internal PhotonView photonView;
+        internal PhotonView photonView = null!;
 
-        public Renderer panelMesh;
-        public TMP_Text keypadDisplayText;
-        private Color lockedColor = new Color(0.75f, 0f, 0f, 1f); //custom red
-        private Color unlockedColor = new Color(0.3f, 0.58f, 0.3f, 0f); //custom green
-        private ItemToggle itemToggle;
-        private ItemEquippable itemEquippable;
-        private PhysGrabObject physGrabObject;
+        public Renderer panelMesh = null!;
+        public TMP_Text keypadDisplayText = null!;
+        private Color lockedColor = new(0.75f, 0f, 0f, 1f); //custom red
+        private Color unlockedColor = new(0.3f, 0.58f, 0.3f, 0f); //custom green
+        private ItemToggle itemToggle = null!;
+        private ItemEquippable itemEquippable = null!;
+        private PhysGrabObject physGrabObject = null!;
 
 
         private void Awake()
@@ -104,36 +104,6 @@ namespace PocketCartPlus
             valuePreset.name = "voidRemote_value";
 
             Plugin.Spam($"valuePreset created for voidRemote item with base min price of {HostValues.VRMinPrice.Value} and base max price of {HostValues.VRMaxPrice.Value}");
-        }
-
-        internal static void ShopPatch()
-        {
-            bool shouldAdd = false;
-
-            Item voidRemote = REPOLib.Modules.Items.GetItemByName("Item VoidRemote");
-
-            if (voidRemote == null)
-            {
-                Plugin.Spam($"Item not found!");
-                return;
-            }
-
-            if (HostValues.VRRarity.Value >= Plugin.Rand.Next(0, 100))
-                shouldAdd = true;
-
-            if (!shouldAdd && ShopManager.instance.potentialSecretItems.Any(x => x.Value.Contains(voidRemote)))
-            {
-                int CountToReplace = ShopManager.instance.potentialSecretItems.Values.Sum(x => x.Count(i => i.itemAssetName == voidRemote.itemAssetName));
-                Plugin.Spam($"Add-on rarity has determined {voidRemote.itemName} should be removed from the store! Original contains {CountToReplace} of this item");
-                foreach (var item in ShopManager.instance.potentialSecretItems.Values)
-                {
-                    item.RemoveAll(i => i.itemAssetName == voidRemote.itemAssetName);
-                }
-            }
-
-            Plugin.Spam($"Rarity determined void remote is valid to be added to the shop {shouldAdd}");
-            voidRemote.value = valuePreset;
-            Plugin.Spam($"Value preset set for void remote!");
         }
     }
 }

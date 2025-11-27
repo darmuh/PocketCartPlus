@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.5.0] *REPO Monster Update*
+- Updated for latest version of game, 0.3.1
+- Project structure updated, REPOLib reference also updated
+- Assets rebuilt on new version of the game (and unity version update)
+	- Plus cart now uses same font as void remote
+- Item rarity/cost hook moved to ShopManager.GetAllItemsFromStatsManager
+- Some general code cleanup
+
 ## [0.4.2]
 - Fixed issue with Void Remote asset where RoomVolumeScript scale/position was not set correctly, resulting in incorrect calculations for the shop extraction point. (Thanks CoolLKKPS for the report)
 - Updated all RpcTargets to use Buffered variant to include clients who join after the Rpc has been run. This should keep things more in sync between players

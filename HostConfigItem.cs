@@ -72,7 +72,7 @@ namespace PocketCartPlus
             get => configItem.BoxedValue;
         }
 
-        internal T Value;
+        internal T Value = default!;
 
         public static HostConfigItem<T> GetItem(string id)
         {

@@ -10,11 +10,11 @@ namespace PocketCartPlus
     internal class CartItem : MonoBehaviour
     {
         internal Vector3 PosOffset; //this is the local offset
-        internal PhysGrabObject grabObj;
+        internal PhysGrabObject grabObj = null!;
         internal bool IsStored { get; private set; } = false;
-        internal Transform baseTransform;
+        internal Transform baseTransform = null!;
         internal Vector3 OriginalScale;
-        internal PhotonTransformView photonTransformView;
+        internal PhotonTransformView photonTransformView = null!;
 
         internal bool IsPlayer()
         {
@@ -59,7 +59,7 @@ namespace PocketCartPlus
                     itemLights.AddRange(enemyLights);
             }
 
-            itemLights.Distinct();
+            itemLights = [.. itemLights.Distinct()];
             itemLights.RemoveAll(i => i.enabled = false);
 
             //calculate scale
@@ -80,7 +80,7 @@ namespace PocketCartPlus
             PlayerAvatar player;
 
             if (item.gameObject.transform.parent == null)
-                player = null;
+                player = null!;
             else
                 player = item.gameObject.transform.parent.GetComponentInChildren<PlayerAvatar>();
 
@@ -123,7 +123,7 @@ namespace PocketCartPlus
 
             if (isPlayer)
             {
-                playerRef.tumble.TumbleSet(true, false);
+                playerRef!.tumble.TumbleSet(true, false);
                 yield return null;
                 photonTransformView.Teleport(PocketDimension.ThePocket.transform.position + new Vector3(0f, 5f * playerRef.transform.localScale.y - UnityEngine.Random.Range(0f, 2f), 0f), PocketDimension.ThePocket.transform.rotation);
                 //PocketDimension.TeleportPlayer(playerRef, PocketDimension.ThePocket.transform.position + new Vector3(0f, 5f * playerRef.transform.localScale.y - UnityEngine.Random.Range(0f, 2f), 0f), PocketDimension.ThePocket.transform.rotation);
@@ -241,7 +241,7 @@ namespace PocketCartPlus
             {
                 if (VoidController.VoidIsLocked)
                 {
-                    Plugin.Log.LogMessage($"The void is locked! {playerRef.playerName} will not be returned to play area!!");
+                    Plugin.Log.LogMessage($"The void is locked! {playerRef!.playerName} will not be returned to play area!!");
 
                     if (playerRef.isLocal)
                     {
@@ -252,7 +252,7 @@ namespace PocketCartPlus
                     yield break;
                 }
 
-                if (playerRef.isDisabled)
+                if (playerRef!.isDisabled)
                     baseTransform = playerRef.playerDeathHead.transform;
                 else
                 {

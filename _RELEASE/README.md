@@ -1,4 +1,4 @@
-# PocketCart Plus
+# PocketCart Plus (Monster Update)
 
 ### Improve the Pocket Cart with a new upgrade that can store items! Buy a larger pocket cart variant! Lock players in a void! 
 
@@ -68,11 +68,9 @@ Void Remote Item: ``Maximum Price``
 Void Remote Item:  ``Rarity Percentage (Add-on)``  
     - This is an added-on rarity percentage that is calculated before the shop initializes.  
 
-### This mod is still WIP, if you run into issues please report them to the linked github or in the REPO Modding discord.  
-
 ### Credits
 Void Remote base asset - https://assetstore.unity.com/packages/3d/props/electronics/keypad-free-262151
 
 ### Last update to this page:  
-August 7th, 2025 (version 0.4.1)  
+November 26th, 2025 (version 0.5.0)  
 *Changelog may have more up-to-date information than this page at times.*
