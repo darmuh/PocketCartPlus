@@ -436,3 +436,4 @@ FodyWeavers.xsd
 /_RELEASE/BepInEx.AssemblyPublicizer.MSBuild.dll
 /_RELEASE/_RELEASE/pocketcartplus
 /pocketcartplus
+/Config.Build.user.props
