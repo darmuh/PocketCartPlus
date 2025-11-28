@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.5.1]
+- Fixed error in secret shop hook that was causing issues on lobby load.
+- Fixed host config items not loading for single player, making it impossible for this mod's items to ever spawn in the shop (rarities defaulted at 0)
+
 ## [0.5.0] *REPO Monster Update*
 - Updated for latest version of game, 0.3.1
 - Project structure updated, REPOLib reference also updated

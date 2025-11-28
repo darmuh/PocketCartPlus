@@ -149,7 +149,7 @@ namespace PocketCartPlus
 
         internal static void HostConfigCheck()
         {
-            if (!HostConfigBase.HostConfigInit && PhotonNetwork.MasterClient != null)
+            if (!HostConfigBase.HostConfigInit && SemiFunc.IsMasterClientOrSingleplayer() && !SemiFunc.MenuLevel())
                 HostValues.StartGame();
         }
     }
@@ -250,7 +250,7 @@ namespace PocketCartPlus
                 List<Item> list = secretShopDict[type];
                 itemName = list.FirstOrDefault(x => x.prefab.prefabName == prefabName);
 
-                if (itemName == null)
+                if (itemName != null)
                 {
                     secretType = type;
                     break;
@@ -263,8 +263,12 @@ namespace PocketCartPlus
                 return;
             }
 
-            if (config >= Plugin.Rand.Next(0, 100))
+            int rand = Plugin.Rand.Next(0, 100);
+
+            if (config >= rand)
                 shouldAdd = true;
+            else
+                Plugin.Spam($"Config {config} is less than {rand}");
 
             if (!shouldAdd)
             {
