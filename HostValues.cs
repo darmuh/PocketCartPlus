@@ -41,7 +41,7 @@ namespace PocketCartPlus
             if (GlobalNetworking.Instance == null && GameManager.Multiplayer())
                 Plugin.WARNING("GlobalNetworking is null!");
 
-            HostConfigBase.SyncIsReady();
+            HostConfigBase.SyncIsReady(); //only host runs this
             HostConfigBase.HostConfigInit = true;
         }
 

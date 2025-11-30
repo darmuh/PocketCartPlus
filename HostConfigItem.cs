@@ -85,17 +85,21 @@ namespace PocketCartPlus
 
         void IValueSetter.SetValue(bool sync)
         {
-            Plugin.Spam($"Setting value of {Name}");
-            if (!SpawnPlayerStuff.AreWeInGame() || !sync)
+            if (SemiFunc.IsMainMenu() || !sync)
             {
+                Plugin.Spam($"Setting value of {Name}");
                 Value = configItem.Value;
                 return;
             }
                 
             if (SemiFunc.IsMasterClientOrSingleplayer())
+            {
+                Plugin.Spam($"HOST: Setting value of {Name}");
                 Value = configItem.Value;
+            } 
             else
             {
+                Plugin.Spam($"CLIENT: Awaiting value of {Name} from host!");
                 _ = GetValueFromHost();
             }
         }

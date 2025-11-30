@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.5.2]
+- Fixed host config syncing issues.
+	- Clients should now properly get the host's config items in the lobby menu before starting the game.
+	- *should* also work with a mod that adds latejoin but this has not been tested (feel free to let me know if it works!)
+
 ## [0.5.1]
 - Fixed error in secret shop hook that was causing issues on lobby load.
 - Fixed host config items not loading for single player, making it impossible for this mod's items to ever spawn in the shop (rarities defaulted at 0)

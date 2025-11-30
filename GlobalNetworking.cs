@@ -31,8 +31,6 @@ namespace PocketCartPlus
             if (!SemiFunc.IsMasterClientOrSingleplayer())
                 return;
 
-            Photon.Realtime.Player asker = info.Sender;
-
             Dictionary<string, bool> bools = [];
             Dictionary<string, float> floats = [];
             Dictionary<string, int> ints = [];
@@ -57,11 +55,11 @@ namespace PocketCartPlus
                 }
                 else
                 {
-                    Plugin.ERROR($"Unexpected type in AskHostValue! {id}\nFrom {asker.NickName}");
+                    Plugin.ERROR($"Unexpected type in AskHostValue! {id}\nFrom {info.Sender.NickName}");
                 }
             }
 
-            photonView.RPC("HostSendAll", asker, [bools.Keys.ToArray<string>(), bools.Values.ToArray<bool>(), floats.Keys.ToArray<string>(), floats.Values.ToArray<float>(), ints.Keys.ToArray<string>(), ints.Values.ToArray<int>()]);
+            photonView.RPC("HostSendAll", info.Sender, [bools.Keys.ToArray<string>(), bools.Values.ToArray<bool>(), floats.Keys.ToArray<string>(), floats.Values.ToArray<float>(), ints.Keys.ToArray<string>(), ints.Values.ToArray<int>()]);
         }
 
         [PunRPC]

@@ -144,13 +144,34 @@ namespace PocketCartPlus
             if (RunManager.instance.runManagerPUN.gameObject.GetComponent<GlobalNetworking>() == null)
                 RunManager.instance.runManagerPUN.gameObject.AddComponent<GlobalNetworking>();
 
+            Plugin.Spam("RunManagerPUN.Start");
             HostConfigCheck();
         }
 
         internal static void HostConfigCheck()
         {
-            if (!HostConfigBase.HostConfigInit && SemiFunc.IsMasterClientOrSingleplayer() && !SemiFunc.MenuLevel())
+            if (!HostConfigBase.HostConfigInit && IsValidState() && !InvalidScene())
                 HostValues.StartGame();
+        }
+
+        private static bool IsValidState()
+        {
+            if (GameManager.Multiplayer())
+            {
+                return PhotonNetwork.MasterClient != null;
+            }
+
+            return true;
+        }
+
+        private static bool InvalidScene()
+        {
+            if (!SemiFunc.IsCurrentLevel(RunManager.instance.levelCurrent, RunManager.instance.levelMainMenu))
+            {
+                return SemiFunc.IsCurrentLevel(RunManager.instance.levelCurrent, RunManager.instance.levelSplashScreen);
+            }
+
+            return true;
         }
     }
 
@@ -175,9 +196,11 @@ namespace PocketCartPlus
                 PocketCartUpgradeItems.ResetProgress();
             }
 
-            NetworkingInstance.HostConfigCheck();
+            Plugin.Spam("SemiFunc.OnSceneSwitch");
+            if(!SemiFunc.RunIsLobby() && !SemiFunc.RunIsLobbyMenu()) //this hook is too early to determine who the master client is
+                NetworkingInstance.HostConfigCheck();
 
-            if (HostConfigBase.HostConfigInit)
+            if (HostConfigBase.HostConfigInit) //only reset hostconfiginit if we are leaving to main menu
                 HostConfigBase.HostConfigInit = !_leaveGame;
         }
     }
