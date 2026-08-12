@@ -7,13 +7,13 @@ repository = "https://thunderstore.io"
 [package]
 namespace = "darmuh"
 name = "PocketCartPlus"
-description = "Improve the Pocket Cart with a new upgrade that can store items! Buy a larger pocket cart variant! Lock players in a void!"
-websiteUrl = "https://github.com/darmuh/PocketCartPlus" # TODO: Add a link to your mod repository here (optional)
+description = "(Cosmetic Update) Improve the Pocket Cart with a new upgrade that can store items! Buy a larger pocket cart variant! Lock your friends in a pocket void!"
+websiteUrl = "https://github.com/darmuh/PocketCartPlus"
 containsNsfwContent = false
 
 [package.dependencies]
-BepInEx-BepInExPack = "5.4.2304"
-Zehs-REPOLib = "3.0.2"
+BepInEx-BepInExPack = "5.4.2305"
+Zehs-REPOLib = "4.2.0"
 
 [build]
 icon = "/_RELEASE/icon.png"

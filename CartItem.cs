@@ -126,10 +126,10 @@ namespace PocketCartPlus
                 playerRef!.tumble.TumbleSet(true, false);
                 yield return null;
                 photonTransformView.Teleport(PocketDimension.ThePocket.transform.position + new Vector3(0f, 5f * playerRef.transform.localScale.y - UnityEngine.Random.Range(0f, 2f), 0f), PocketDimension.ThePocket.transform.rotation);
-                //PocketDimension.TeleportPlayer(playerRef, PocketDimension.ThePocket.transform.position + new Vector3(0f, 5f * playerRef.transform.localScale.y - UnityEngine.Random.Range(0f, 2f), 0f), PocketDimension.ThePocket.transform.rotation);
                 Plugin.Spam($"Teleporting player to pocket dimension {PocketDimension.ThePocket.transform}");
                 //Set stored
                 IsStored = true;
+                VoidRef.PlayersInVoid.Add(this);
                 yield break;
             }
 
@@ -256,12 +256,7 @@ namespace PocketCartPlus
                     baseTransform = playerRef.playerDeathHead.transform;
                 else
                 {
-                    playerRef.tumble.TumbleSet(true, false);
-                    yield return null;
-                    photonTransformView.Teleport(cart.inCart.position + new Vector3(0f, 1f, 0f), cart.inCart.rotation);
-                    //PocketDimension.TeleportPlayer(playerRef, cart.inCart.position + new Vector3(0f, 1f, 0f), cart.inCart.rotation);
-                    Plugin.Spam($"Teleporting player back to level {cart.inCart.position}");
-                    IsStored = false;
+                    yield return ReturnPlayerToLevel(cart.inCart.position, cart.inCart.rotation);
                     yield break;
                 }
             }
@@ -316,6 +311,21 @@ namespace PocketCartPlus
             yield return new WaitForSeconds(HostValues.SafetyTimer.Value);
             grabObj.impactDetector.isIndestructible = false;
             Plugin.Spam("RestoreItem complete!");
+        }
+
+        internal IEnumerator ReturnPlayerToLevel(Vector3 pos, Quaternion rot)
+        {
+            // teleport any items player is holding
+            playerRef.physGrabber.grabbedPhysGrabObject?.Teleport(pos + new Vector3(0f, 1.5f, 0f), rot);
+            yield return null;
+            playerRef.tumble.TumbleSet(true, false);
+            yield return null;
+            photonTransformView.Teleport(pos + new Vector3(0f, 1f, 0f), rot);
+            //PocketDimension.TeleportPlayer(playerRef, cart.inCart.position + new Vector3(0f, 1f, 0f), cart.inCart.rotation);
+            Plugin.Spam($"Teleporting player back to level {pos}");
+            IsStored = false;
+            VoidRef.PlayersInVoid.Remove(this);
+            yield break;
         }
 
     }

@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
  
 The format is based on [Keep a Changelog](http://keepachangelog.com/).
 
+## [0.6.1]
+- Oops, last update did not include the fixed asset bundle, repackaged and uploaded under new version :)
+
+## [0.6.0] *Major Update*
+- Updated for latest public build of game, 0.4.4.3 (Cosmetic Update & More)
+- Rebuilt item bundles with a new patched project as my old project was corrupted
+	- Pocket Cart PLUS may look a slight bit different now.
+	- With the repatch, I've also added a visible thrust similar to what the other carts have had since the previous major game update
+- Add-on rarity config items for all of the items have been removed/disabled.
+	- These were both complicated to set up and confusing for the average person to understand when configuring their mod.
+	- Since the game does not have direct rarities set for items I have just removed these settings completely.
+		- The items are already rare enough and can be balanced by price if needed
+- Minimum/Maximum price settings (base price) have been fixed with a much better implementation.
+	- Please note these are still just the base prices, as you get to later and later levels you can exceed the max price set in the configs.
+- Added safety check to the void where it checks if the last alive player(s) are currently considered voided. If they are, it will return them to the truck
+- Added safety check to the void that prevents you from equipping a cart in the void, as this can also get players/items stuck there
+	- You can probably still lose a cart by spamming the equip before you are teleported back (be warned)
+- Removed backwards compatibility for saves from prior to version 0.2 (March 2025) of this mod. (This should affect absolutely no one at this point)
+- Removed ShopManager.GetAllItemsFromStatsManager patch as it's no longer needed.
+- Disabled spawning the void when the level is a shop level, it was unusable anyway since you cant use items in the shop.
+- Fixed custom hintui element throwing errors after Cosmetic Update
+
 ## [0.5.2]
 - Fixed host config syncing issues.
 	- Clients should now properly get the host's config items in the lobby menu before starting the game.

@@ -14,17 +14,33 @@ namespace PocketCartPlus
         internal Transform normalParent = null!;
         internal bool grabHint = false;
 
+        private void Awake()
+        {
+            if (CreateHintUI.InfoextraUI == null)
+            {
+                Plugin.Log.LogError("Failed to grab InfoextraUI instance!");
+                return;
+            }
+
+            ItemInfoUI.instance.SemiUIScoot(new Vector2(0f, 8f));
+            // fix NRE introduced in 0.4.0
+            base.doNotDisable = [];
+            base.animationCurveShrink = CreateHintUI.InfoextraUI.animationCurveShrink;
+            
+            // set this at awake instead
+            Text = GetComponent<TextMeshProUGUI>();
+            instance = this;
+        }
+
         public override void Start()
         {
             base.Start();
-            Text = GetComponent<TextMeshProUGUI>();
             if(Text == null)
             {
                 Plugin.Log.LogError("NULL HINTER TEXT!!");
                 return;
             }
 
-            instance = this; 
             Text.text = "";
             normalParent = transform.parent;
             showPosition.x = 0f;
@@ -57,8 +73,6 @@ namespace PocketCartPlus
             base.Update();
             if (SemiFunc.RunIsShop())
                 return;
-
-            ItemInfoUI.instance.SemiUIScoot(new Vector2(0f, 8f));
 
             if (messageTimer > 0f)
             {

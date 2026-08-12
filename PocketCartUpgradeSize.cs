@@ -12,16 +12,14 @@ namespace PocketCartPlus
         public PhysGrabCart Cart = null!;
         public float chosenScale = 1.25f;
         public Vector3 chosenVector3;
-        internal ItemAttributes itemAtts = null!;
+        private ItemAttributes ItemAtts { get; set; } = null!;
 
         private void Awake()
         {
-            itemAtts = gameObject.GetComponent<ItemAttributes>();
+            Plugin.Spam("PocketCartUpgradeSize AWAKE");
+            ItemAtts = gameObject.GetComponent<ItemAttributes>();
             Cart = gameObject.GetComponent<PhysGrabCart>();
-
-            if (!SemiFunc.IsMasterClientOrSingleplayer())
-                return;
-            
+         
             ChooseScale();
 
             UpgradeManager.PlusSizeCarts.RemoveAll(c => c == null);
@@ -31,10 +29,16 @@ namespace PocketCartPlus
         private void Start()
         {
             UpdateName();
+
+            // awake is too early
+            UpdateCost();
         }
 
         private void ChooseScale()
         {
+            if (!SemiFunc.IsMasterClientOrSingleplayer())
+                return;
+
             Plugin.Spam("Chosing scale!");
             int rarity = Plugin.Rand.Next(0, 100);
 
@@ -67,10 +71,10 @@ namespace PocketCartPlus
         {
             Plugin.Spam("Updating Name!");
             if (chosenScale == 1.5f)
-                itemAtts.itemName = "POCKET C.A.R.T. PLUS2";
+                ItemAtts.itemName = "POCKET C.A.R.T. PLUS2";
 
             if(chosenScale == 1.75f)
-                itemAtts.itemName = "POCKET C.A.R.T. PLUS3";
+                ItemAtts.itemName = "POCKET C.A.R.T. PLUS3";
         }
 
         internal void ReturnScale()
@@ -87,16 +91,23 @@ namespace PocketCartPlus
             Plugin.Spam($"Scale has been returned to chosen scale {chosenScale}");
         }
 
-        internal static void ValueRef()
+        // only run on host client in the shop
+        private void UpdateCost()
         {
-            if (valuePreset == null)
-                valuePreset = ScriptableObject.CreateInstance<Value>();
+            if (!SemiFunc.IsMasterClientOrSingleplayer() || !SemiFunc.RunIsShop())
+                return;
 
-            valuePreset.valueMin = HostValues.PlusCartMinPrice.Value / basePriceMultiplier;
-            valuePreset.valueMax = HostValues.PlusCartMaxPrice.Value / basePriceMultiplier;
-            valuePreset.name = "pocketcartplus_value";
+            // have to set min/max values divided by 4 because of how repo handles values for some reason
+            ItemAtts.itemValueMin = HostValues.PlusCartMinPrice.Value / 4f;
+            ItemAtts.itemValueMax = HostValues.PlusCartMaxPrice.Value / 4f;
 
-            Plugin.Spam($"valuePreset created for cartPlus upgrade with base min price of {HostValues.PlusCartMinPrice.Value} and base max price of {HostValues.PlusCartMaxPrice.Value}");
+            // update cost
+            ItemAtts.GetValue();
+
+            Plugin.Spam($"""
+                Item attributes for {ItemAtts.itemName} updated with min price of {HostValues.PlusCartMinPrice.Value} ({ItemAtts.itemValueMin}) and max price of {HostValues.PlusCartMaxPrice.Value} ({ItemAtts.itemValueMax})
+                Value is {ItemAtts.value}
+                """);
         }
     }
 }

@@ -1,8 +1,10 @@
-# PocketCart Plus (Monster Update)
+# PocketCart Plus (Cosmetics Update)
 
 ### Improve the Pocket Cart with a new upgrade that can store items! Buy a larger pocket cart variant! Lock players in a void! 
 
-This mod is intended for use by **all clients** in a lobby. This mod provides **one** upgrade and **two** items that can be purchased in the shop.
+This mod is intended for use by **all clients** in a lobby. This mod provides **one** upgrade and **two** items that can be purchased in the shop.  
+  
+*Recently rebuilt to work with the latest public version of the game (as of August 11th 2026)*  
 
 ### Features:
 
@@ -34,9 +36,6 @@ Keep Items Upgrade: ``Minimum Price``
     - This will set the minimum base-price of the Keep Items Upgrade  
 Keep Items Upgrade: ``Maximum Price``  
     - This will set the maximum base-price of the Keep Items Upgrade  
-Keep Items Upgrade: ``Rarity Percentage (Add-on)``  
-    - This is an added-on rarity percentage that is calculated before the shop initializes.  
-    - Set to 100% if you do not wish for added rarity.  
 Keep Items Upgrade: ``Shared Unlock``   
     - This will make the unlock shared. So if one player unlocks it all will have the upgrade.  
 Keep Items Upgrade: ``Ignore Enemies``  
@@ -57,20 +56,16 @@ Cart Plus Item: ``Minimum Price``
     - This will set the minimum base-price of the POCKET C.A.R.T. Plus item.  
 Cart Plus Item: ``Maximum Price``  
     - This will set the maximum base-price of the POCKET C.A.R.T. Plus item.   
-Cart Plus Item:  ``Rarity Percentage (Add-on)``  
-    - This is an added-on rarity percentage that is calculated before the shop initializes.  
 Cart Plus Item: ``Rare Variants``  
     - When enabled, the pocket cart plus has a rare chance to spawn as either the PLUS2 (150% scale) or PLUS3 (175% scale)  
 Void Remote Item: ``Minimum Price``   
     - This will set the minimum base-price of the Void Remote Item.  
 Void Remote Item: ``Maximum Price``  
     - This will set the maximum base-price of the Void Remote Item.   
-Void Remote Item:  ``Rarity Percentage (Add-on)``  
-    - This is an added-on rarity percentage that is calculated before the shop initializes.  
 
 ### Credits
 Void Remote base asset - https://assetstore.unity.com/packages/3d/props/electronics/keypad-free-262151
 
 ### Last update to this page:  
-November 26th, 2025 (version 0.5.0)  
+August 11th, 2025 (version 0.6.0)  
 *Changelog may have more up-to-date information than this page at times.*

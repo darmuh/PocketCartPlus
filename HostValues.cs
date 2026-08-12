@@ -19,12 +19,12 @@ namespace PocketCartPlus
         internal static HostConfigItem<bool> ShareKeepUpgrade { get; private set; } = new(CartItemsUpgradeShared, false);
         internal static HostConfigItem<float> KeepMinPrice { get; private set; } = new(CartItemsMinPrice, false);
         internal static HostConfigItem<float> KeepMaxPrice { get; private set; } = new(CartItemsMaxPrice, false);
-        internal static HostConfigItem<int> KeepItemsRarity { get; private set; } = new(CartItemRarity, false);
-        internal static HostConfigItem<int> PlusCartRarity { get; private set; } = new(PlusItemRarity, false);
+        //internal static HostConfigItem<int> KeepItemsRarity { get; private set; } = new(CartItemRarity, false);
+        //internal static HostConfigItem<int> PlusCartRarity { get; private set; } = new(PlusItemRarity, false);
         internal static HostConfigItem<float> PlusCartMinPrice { get; private set; } = new(PlusItemMinPrice, false);
         internal static HostConfigItem<float> PlusCartMaxPrice { get; private set; } = new(PlusItemMaxPrice, false);
         internal static HostConfigItem<bool> PlusCartRareVariants { get; private set; } = new(RareVariants, false);
-        internal static HostConfigItem<int> VRRarity { get; private set; } = new(VoidRemoteRarity, false);
+        //internal static HostConfigItem<int> VRRarity { get; private set; } = new(VoidRemoteRarity, false);
         internal static HostConfigItem<float> VRMinPrice { get; private set; } = new(VoidRemoteMinPrice, false);
         internal static HostConfigItem<float> VRMaxPrice { get; private set; } = new(VoidRemoteMaxPrice, false);
 

@@ -11,14 +11,13 @@ namespace PocketCartPlus
             {
                 int upgrade = 0;
 
-                if (!StatsManager.instance.FetchPlayerUpgrades(PlayerAvatar.instance.steamID).ContainsKey("Pocketcart Keep Items"))
+                if (!StatsManager.instance.FetchPlayerUpgrades(PlayerAvatar.instance.steamID).ContainsKey("playerUpgradePocketcartKeepItems"))
                 {
                     Plugin.WARNING("Unable to find upgrade for CartItemsUpgradeLevel! Returning 0!");
                     return upgrade;
-                }
-                    
+                }   
                 else
-                    return StatsManager.instance.FetchPlayerUpgrades(PlayerAvatar.instance.steamID)["Pocketcart Keep Items"];
+                    return StatsManager.instance.FetchPlayerUpgrades(PlayerAvatar.instance.steamID)["playerUpgradePocketcartKeepItems"];
             }
             set
             {
@@ -28,6 +27,7 @@ namespace PocketCartPlus
         }
 
         //internal static List<int> PlusSizesChosen = [];
-        internal static List<PocketCartUpgradeSize> PlusSizeCarts = [];
+        // not used for anything
+        internal static List<PocketCartUpgradeSize> PlusSizeCarts { get; set; } = [];
     }
 }

@@ -52,9 +52,11 @@ namespace PocketCartPlus
     [HarmonyPatch(typeof(ItemInfoExtraUI), nameof(ItemInfoExtraUI.Start))]
     public class CreateHintUI
     {
-        internal static GameObject Hinter = null!;
+        internal static GameObject? Hinter;
+        internal static ItemInfoExtraUI? InfoextraUI;
         public static void Postfix(ItemInfoExtraUI __instance)
         {
+            InfoextraUI = __instance;
             if (!SpawnPlayerStuff.AreWeInGame())
                 return;
 
@@ -86,6 +88,10 @@ namespace PocketCartPlus
         public static void Postfix()
         {
             if (!SpawnPlayerStuff.AreWeInGame())
+                return;
+
+            // dont spawn void in shop
+            if (SemiFunc.RunIsShop())
                 return;
 
             if(ThePocket == null)
@@ -205,116 +211,6 @@ namespace PocketCartPlus
         }
     }
 
-    [HarmonyPatch(typeof(ShopManager), nameof(ShopManager.GetAllItemsFromStatsManager))]
-    public class ModifyItemRarity
-    {
-        public static void Postfix(ShopManager __instance)
-        {
-            if (!SemiFunc.IsMasterClientOrSingleplayer())
-                return;
-
-            //prices
-            Plugin.Log.LogDebug("Value reference patches");
-            PocketCartUpgradeItems.ValueRef();
-            PocketCartUpgradeSize.ValueRef();
-            VoidController.ValueRef();
-
-            //add-on rarities
-            Plugin.Log.LogDebug("Add-on rarity patches");
-            ShopPatch(HostValues.KeepItemsRarity.Value, "Item PocketCart Items", PocketCartUpgradeItems.valuePreset, ref __instance.potentialItemUpgrades);
-            ShopPatch(HostValues.PlusCartRarity.Value, "Item PCartPlus", PocketCartUpgradeSize.valuePreset, ref __instance.potentialItems);
-            ShopPatch(HostValues.VRRarity.Value, "Item VoidRemote", VoidController.valuePreset, ref __instance.potentialSecretItems);
-        }
-
-        private static void ShopPatch(int config, string prefabName, Value valuePreset, ref List<Item> RefItemList)
-        {
-            bool shouldAdd = false;
-
-            Item itemName = RefItemList.FirstOrDefault(i => i.prefab.prefabName == prefabName);
-
-            if (itemName == null)
-            {
-                Plugin.Spam($"Item [{prefabName}] not found!");
-                return;
-            }
-
-            if (config >= Plugin.Rand.Next(0, 100))
-                shouldAdd = true;
-
-            if (!shouldAdd)
-            {
-                int CountToReplace = RefItemList.Count(i => i.itemName == itemName.itemName);
-                Plugin.Spam($"Add-on rarity has determined {itemName.itemName} should be removed from the store! Original contains {CountToReplace} of this item");
-                RefItemList.RemoveAll(i => i.itemName == itemName.itemName);
-
-                if (CountToReplace > 0 && RefItemList.Count > 0)
-                {
-                    for (int i = 0; i < CountToReplace; i++)
-                    {
-                        RefItemList.Add(RefItemList[Plugin.Rand.Next(0, RefItemList.Count)]);
-                        Plugin.Spam("Replaced item with another random item of same type");
-                    }
-                }
-            }
-
-            Plugin.Spam($"Rarity determined Item [{prefabName}] can be added in the shop {shouldAdd}");
-            itemName.value = valuePreset;
-            Plugin.Spam($"Value preset set for Item [{prefabName}]");
-        }
-
-        private static void ShopPatch(int config, string prefabName, Value valuePreset, ref Dictionary<SemiFunc.itemSecretShopType, List<Item>> secretShopDict)
-        {
-            bool shouldAdd = false;
-            Item itemName = null!;
-            SemiFunc.itemSecretShopType secretType = SemiFunc.itemSecretShopType.none;
-
-            foreach(var type in secretShopDict.Keys)
-            {
-                List<Item> list = secretShopDict[type];
-                itemName = list.FirstOrDefault(x => x.prefab.prefabName == prefabName);
-
-                if (itemName != null)
-                {
-                    secretType = type;
-                    break;
-                }
-            }
-
-            if (itemName == null)
-            {
-                Plugin.Spam($"Item [{prefabName}] not found in secret shop!");
-                return;
-            }
-
-            int rand = Plugin.Rand.Next(0, 100);
-
-            if (config >= rand)
-                shouldAdd = true;
-            else
-                Plugin.Spam($"Config {config} is less than {rand}");
-
-            if (!shouldAdd)
-            {
-                int CountToReplace = secretShopDict[secretType].Count(i => i.itemName == itemName.itemName);
-                Plugin.Spam($"Add-on rarity has determined {itemName.itemName} should be removed from the store! Original contains {CountToReplace} of this item");
-                secretShopDict[secretType].RemoveAll(i => i.itemName == itemName.itemName);
-
-                if (CountToReplace > 0 && secretShopDict.Count > 0)
-                {
-                    for (int i = 0; i < CountToReplace; i++)
-                    {
-                        secretShopDict[secretType].Add(secretShopDict[secretType][Plugin.Rand.Next(0, secretShopDict.Count)]);
-                        Plugin.Spam("Replaced secret shop item with another random valid secret shop item");
-                    }
-                }
-            }
-
-            Plugin.Spam($"Rarity determined Item [{prefabName}] can be added in the secret shop {shouldAdd}");
-            itemName.value = valuePreset;
-            Plugin.Spam($"Value preset set for Item [{prefabName}]");
-        }
-    }
-
     [HarmonyPatch(typeof(PhysGrabCart), nameof(PhysGrabCart.Start))]
     public class GetPocketCarts
     {
@@ -331,7 +227,27 @@ namespace PocketCartPlus
         }
     }
 
-    //for pocketcart upgraded size
+    // prevent opening cart in void
+    [HarmonyPatch(typeof(ItemEquippable), nameof(ItemEquippable.RequestUnequip))]
+    public class PreventOpenInVoid
+    {
+        public static bool Prefix(ItemEquippable __instance)
+        {
+            if (__instance.physGrabObject.isCart)
+            {
+                float voidDistance = Vector3.Distance(__instance.GetOwnerPlayerAvatar().transform.position, PocketDimension.ThePocket.transform.position);
+                if (voidDistance <= 25f)
+                {
+                    Plugin.Message("Preventing player opening pocket cart inside the void!");
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    // for pocketcart upgraded size
     [HarmonyPatch(typeof(ItemEquippable), nameof(ItemEquippable.AnimateUnequip))]
     public class FixScaleofPlus
     {

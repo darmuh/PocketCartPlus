@@ -14,9 +14,9 @@ namespace PocketCartPlus
         internal ItemToggle itemToggle = null!;
         internal Item itemComponent = null!;
         internal MapCustom mapCustom = null!;
+        private ItemAttributes ItemAtts { get; set; } = null!;
 
         //static
-        //internal static bool SaveLoaded = false;
         internal static Dictionary<string, int> ClientsUpgradeDictionary = [];
         internal static List<string> ClientsUnlockedOLD = [];
         internal static Value valuePreset = null!;
@@ -25,16 +25,24 @@ namespace PocketCartPlus
         internal static readonly Color blueUpgradeicon = new(6f/255f, 57f/255f, 112f/255f);
         internal static readonly Color transparent = new(1f, 1f, 1f, 0f);
 
-        private void Start()
+        private void Awake()
         {
+            Plugin.Spam("PocketCartUpgradeItems AWAKE");
+            // moved to awake
             instance = this;
             photonView = gameObject.GetComponent<PhotonView>();
             itemComponent = gameObject.GetComponent<Item>();
             itemToggle = gameObject.GetComponent<ItemToggle>();
             mapCustom = gameObject.GetComponent<MapCustom>();
+            ItemAtts = gameObject.GetComponent<ItemAttributes>();
+
+        }
+
+        private void Start()
+        {
+            
             Plugin.Spam("PocketCartUpgradeItems Start");
             //Item PocketCart Items
-
             if(mapCustom != null)
             {
                 Plugin.Spam("got mapCustom!");
@@ -43,6 +51,9 @@ namespace PocketCartPlus
                 else
                     mapCustom.color = blueUpgradeicon;
             }
+
+            // awake is too early
+            UpdateCost();
         }
 
         internal static void ClientsUnlocked()
@@ -126,7 +137,6 @@ namespace PocketCartPlus
 
         internal static void LoadStart()
         {
-            //convert old save data
             LoadSave();
             Plugin.Spam("--- Start of Clients Unlocked List ---");
             ClientsUpgradeDictionary.Do(d => Plugin.Spam($"{d.Key}"));
@@ -139,44 +149,12 @@ namespace PocketCartPlus
             Plugin.Spam("Loading unlocked clients listing from statsmanager!");
             if (!StatsManager.instance.dictionaryOfDictionaries.TryGetValue("playerUpgradePocketcartKeepItems", out ClientsUpgradeDictionary))
                 Plugin.WARNING("Unable to load save key!");
-
-            //Get old save key info
-            GetOldSaveData();
         }
 
         internal static void UpdateSave()
         {
-            //if (!SemiFunc.IsMasterClientOrSingleplayer())
-                //return;
-
             Plugin.Spam("Updating PocketCartUpgrades_ItemsUpgrade in dictionary!");
             StatsManager.instance.dictionaryOfDictionaries["playerUpgradePocketcartKeepItems"] = ClientsUpgradeDictionary;
-        }
-
-        private static void GetOldSaveData()
-        {
-            if (ES3.KeyExists("PocketCartUpgrades_ItemsUpgrade", StatsManager.instance.saveFileCurrent))
-            {
-                Plugin.Spam("Old existing save key found! Loading values");
-                ClientsUnlockedOLD = ES3.Load<List<string>>("PocketCartUpgrades_ItemsUpgrade", StatsManager.instance.saveFileCurrent);
-                if (ClientsUnlockedOLD.Count > 0)
-                {
-                    ClientsUnlockedOLD.RemoveAll(c => c == null);
-                    ClientsUnlockedOLD.Do(c =>
-                    {
-                        if (!ClientsUpgradeDictionary.ContainsKey(c))
-                            ClientsUpgradeDictionary.Add(c, 1);
-                        else
-                        {
-                            if (ClientsUpgradeDictionary[c] == 0)
-                                ClientsUpgradeDictionary[c] = 1;
-                        }
-                    });
-                }
-
-                ES3.DeleteKey("PocketCartUpgrades_ItemsUpgrade");
-                ClientsUnlockedOLD = [];
-            }
         }
 
         public void Upgrade()
@@ -189,6 +167,9 @@ namespace PocketCartPlus
                     LocalItemsUpgrade = true;
             }
 
+            if (!SemiFunc.IsMasterClientOrSingleplayer())
+                return;
+
             if (!ClientsUpgradeDictionary.TryGetValue(playerAvatar.steamID, out int upgradeLevel))
             {
                 Plugin.Spam($"Unable to find [ {playerAvatar.steamID} ] in ClientsUpgradeDictionary, creating new entry at level 1!");
@@ -200,11 +181,7 @@ namespace PocketCartPlus
                 ClientsUpgradeDictionary[playerAvatar.steamID]++;
             }
                 
-
             UpdateSave();
-
-            if (!SemiFunc.IsMasterClientOrSingleplayer())
-                return;
 
             if (HostValues.ShareKeepUpgrade.Value)
             {
@@ -215,7 +192,9 @@ namespace PocketCartPlus
         }
 
         [PunRPC]
+#pragma warning disable CA1822 // cannot mark as static because this is used in an RPC
         private void ReceiveUpgrade(int upgradeLevel)
+#pragma warning restore CA1822
         {
             //this is a client only RPC
             if (PhotonNetwork.IsMasterClient)
@@ -228,16 +207,24 @@ namespace PocketCartPlus
                 CartItemsUpgradeLevel = upgradeLevel;
         }
 
-        internal static void ValueRef()
+
+        // only run on host client in the shop
+        private void UpdateCost()
         {
-            if (valuePreset == null)
-                valuePreset = ScriptableObject.CreateInstance<Value>();
+            if (!SemiFunc.IsMasterClientOrSingleplayer() || !SemiFunc.RunIsShop())
+                return;
 
-            valuePreset.valueMin = HostValues.KeepMinPrice.Value / basePriceMultiplier;
-            valuePreset.valueMax = HostValues.KeepMaxPrice.Value / basePriceMultiplier;
-            valuePreset.name = "pocketcart_keepitems";
+            // have to set min/max values divided by 4 because of how repo handles values for some reason
+            ItemAtts.itemValueMin = HostValues.KeepMinPrice.Value / 4f;
+            ItemAtts.itemValueMax = HostValues.KeepMaxPrice.Value / 4f;
 
-            Plugin.Spam($"valuePreset created for keepItems upgrade with base min price of {HostValues.KeepMinPrice.Value} and base max price of {HostValues.KeepMaxPrice.Value}");
+            // update cost
+            ItemAtts.GetValue();
+
+            Plugin.Spam($"""
+                Item attributes for {ItemAtts.itemName} updated with min price of {HostValues.KeepMinPrice.Value} ({ItemAtts.itemValueMin}) and max price of {HostValues.KeepMaxPrice.Value} ({ItemAtts.itemValueMax})
+                Value is {ItemAtts.value}
+                """);
         }
     }
 }

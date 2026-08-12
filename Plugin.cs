@@ -12,7 +12,7 @@ using UnityEngine;
 
 namespace PocketCartPlus
 {
-    
+    // repolib dependency
     [BepInDependency(MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
     [BepInAutoPlugin]
     public partial class Plugin : BaseUnityPlugin
@@ -32,13 +32,11 @@ namespace PocketCartPlus
             instance = this;
             Log = base.Logger;
             Log.LogInfo($"{Name} is loading with version {Version}!");
-            Log.LogInfo($"This version of the mod has been compiled for REPO version 0.3.1 :)");
+            Log.LogInfo($"This version of the mod has been compiled for REPO version 0.4.4.3 :)");
             ModConfig.Init();
             string pluginFolderPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             string assetBundleFilePath = Path.Combine(pluginFolderPath, "upgrade_cartitems");
             string pocketDimension = Path.Combine(pluginFolderPath, "pocketdimension");
-            //string hintUI = Path.Combine(pluginFolderPath, "hintui");
-            //REPOLib.BundleLoader.LoadBundle(hintUI, BundleLoader, false);
             REPOLib.BundleLoader.LoadBundle(pocketDimension, BundleLoader, false);
             REPOLib.BundleLoader.LoadBundle(assetBundleFilePath, BundleLoader, true);
             
